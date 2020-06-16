@@ -4,6 +4,10 @@ import './App.css';
 
 /* eslint-disable no-undef */
 function App() {
+  function callMethodThatDoesntExist() {
+    foo();
+  }
+
   return (
     <div className="App">
       <header className="App-header">
@@ -20,7 +24,7 @@ function App() {
           Learn React
         </a>
 
-        <button onClick={methodDoesNotExist}>Broken Button</button>;
+        <button onClick={callMethodThatDoesntExist}>Broken Button</button>;
       </header>
     </div>
   );
