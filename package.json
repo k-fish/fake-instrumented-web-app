@@ -1,5 +1,5 @@
 {
-  "name": "fake-web-app",
+  "name": "fake-instrumented-web-app",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
