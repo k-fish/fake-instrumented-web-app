@@ -17,17 +17,30 @@ Sentry.init({
 
 const timeout = (wait) => new Promise(resolve => setTimeout(resolve, wait));
 
-const fakeTracingFunction = async () => {
-  const transaction = Sentry.startTransaction({name: 'test-transaction'});
+const fakeTracingFunction = async (time, maxJitter = 0) => {
+  let jitterLabel = maxJitter ? '-jitter' : '';
+  const transaction = Sentry.startTransaction({name: `test-transaction-${time}${jitterLabel}`});
   const span = transaction.startChild({op: 'functionX'}); // This function returns a Span
 
-  await timeout(2000);
+  const jitter = parseInt(maxJitter * Math.random(), 10);
+  await timeout(time + jitter);
 
   span.finish(); // Remember that only finished spans will be sent with the transaction
   transaction.finish(); // Finishing the transaction will send it to Sentry
 };
 
-fakeTracingFunction();
+fakeTracingFunction(1, 2000);
+fakeTracingFunction(10, 90);
+fakeTracingFunction(100);
+fakeTracingFunction(200);
+fakeTracingFunction(300);
+fakeTracingFunction(400);
+fakeTracingFunction(500);
+fakeTracingFunction(1000);
+fakeTracingFunction(1000, 400); // for misery 1200 w/ jitter
+fakeTracingFunction(1500);
+fakeTracingFunction(2000);
+fakeTracingFunction(3000, 7000);
 
 ReactDOM.render(
   <React.StrictMode>
