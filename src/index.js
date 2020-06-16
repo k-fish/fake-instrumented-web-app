@@ -8,11 +8,11 @@ import * as Sentry from '@sentry/browser';
 import { Integrations as ApmIntegrations } from '@sentry/apm';
 
 Sentry.init({
-  dsn: 'http://6e416ae2cdef4f56aeeabd91924898b9@localhost:8000/2',
+  dsn: "https://4319117d362641cda31914679645d2b6@o408219.ingest.sentry.io/5278709",
   integrations: [
     new ApmIntegrations.Tracing(),
   ],
-  tracesSampleRate: 0.99,
+  tracesSampleRate: 1.0,
 });
 
 const timeout = (wait) => new Promise(resolve => setTimeout(resolve, wait));

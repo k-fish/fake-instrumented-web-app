@@ -18,6 +18,8 @@ function App() {
         >
           Learn React
         </a>
+
+        <button onClick={methodDoesNotExist}>Broken Button</button>;
       </header>
     </div>
   );
