@@ -2,6 +2,7 @@ import React from 'react';
 import logo from './logo.svg';
 import './App.css';
 
+/* eslint-disable no-undef */
 function App() {
   return (
     <div className="App">
@@ -24,5 +25,6 @@ function App() {
     </div>
   );
 }
+/* eslint-enable no-undef */
 
 export default App;
