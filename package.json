@@ -1,6 +1,7 @@
 {
   "name": "fake-instrumented-web-app",
   "version": "0.1.0",
+  "homepage": "https://k-fish.github.io/fake-instrumented-web-app/",
   "private": true,
   "dependencies": {
     "@sentry/apm": "^5.17.0",
