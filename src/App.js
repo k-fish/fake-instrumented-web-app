@@ -13,18 +13,11 @@ function App() {
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
-          Edit <code>src/App.js</code> and save to reload.
+          Test Application
         </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-
-        <button onClick={callMethodThatDoesntExist}>Broken Button</button>;
+        <p>
+          <button onClick={callMethodThatDoesntExist}>Broken Button</button>
+        </p>
       </header>
     </div>
   );
