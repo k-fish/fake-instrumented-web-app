@@ -19,7 +19,12 @@ const timeout = (wait) => new Promise(resolve => setTimeout(resolve, wait));
 
 const fakeTracingFunction = async (time, maxJitter = 0) => {
   let jitterLabel = maxJitter ? '-jitter' : '';
-  const transaction = Sentry.startTransaction({name: `test-transaction-${time}${jitterLabel}`});
+  const transaction = Sentry.startTransaction({
+    name: `test-transaction-${time}${jitterLabel}`,
+    tags: {
+      'device.uuid': 'testDeviceUUID'
+    }
+  });
   const span = transaction.startChild({op: 'functionX'}); // This function returns a Span
 
   const jitter = parseInt(maxJitter * Math.random(), 10);
