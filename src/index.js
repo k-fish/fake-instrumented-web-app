@@ -7,23 +7,39 @@ import * as serviceWorker from './serviceWorker';
 import * as Sentry from '@sentry/browser';
 import { Integrations as ApmIntegrations } from '@sentry/apm';
 
+const ADD_RANDOM_TAGS = false;
+
+const randomCharacters = () => Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
+
 Sentry.init({
-  dsn: "https://4319117d362641cda31914679645d2b6@o408219.ingest.sentry.io/5278709",
+  dsn: "http://6e416ae2cdef4f56aeeabd91924898b9@localhost:8000/2", // Can also use local ingest, eg. 'http://6e416ae2cdef4f56aeeabd91924898b9@localhost:8000/2'
   integrations: [
     new ApmIntegrations.Tracing(),
   ],
   tracesSampleRate: 1.0,
 });
 
+// Set device context via setContext
+Sentry.setContext('device', {
+  uuid: "new-test-uuid"
+});
+
 const timeout = (wait) => new Promise(resolve => setTimeout(resolve, wait));
+
+const getTransactionTags = () => {
+  if (ADD_RANDOM_TAGS) {
+    return {
+      [`test-tag--${randomCharacters()}`]: `test-value--${randomCharacters()}`
+    };
+  };
+  return {};
+};
 
 const fakeTracingFunction = async (time, maxJitter = 0) => {
   let jitterLabel = maxJitter ? '-jitter' : '';
   const transaction = Sentry.startTransaction({
     name: `test-transaction-${time}${jitterLabel}`,
-    tags: {
-      'device.uuid': 'testDeviceUUID'
-    }
+    tags: getTransactionTags()
   });
   const span = transaction.startChild({op: 'functionX'}); // This function returns a Span
 
