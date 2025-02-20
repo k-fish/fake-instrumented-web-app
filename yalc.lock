@@ -1,0 +1,14 @@
+{
+  "version": "v1",
+  "packages": {
+    "@sentry/browser": {
+      "signature": "9cde7ebc68f3fb5c047013cd40c111cc",
+      "file": true,
+      "replaced": "^9.1.0"
+    },
+    "@sentry/core": {
+      "signature": "e7342d8379678870b15ece7613b16afe",
+      "file": true
+    }
+  }
+}
