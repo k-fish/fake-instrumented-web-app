@@ -18,9 +18,17 @@ const randomCharacters = () =>
     .replace(/[^a-z]+/g, "")
     .substr(0, 5);
 
+const dsnl =
+  "http://072dda62717bd34a1457af2c28e7494b@sentry.dev.getsentry.net:8000/4";
+const dsn4 =
+  "https://0a7473685132dfcf2fbb9352c32d308d@sentry.my.sentry.io/4508728444321793";
+const dsn =
+  "https://b8793daed00c88032f55a4649b1e85a8@o1.ingest.us.sentry.io/4508892109012993"; // test-kfish logs
+const dsnabhi = "https://1238b05a4527146d02d1608e205128e7@o447951.ingest.us.sentry.io/4508920403722240"
+
+
 Sentry.init({
-  // dsn: "http://072dda62717bd34a1457af2c28e7494b@sentry.dev.getsentry.net:8000/4",
-  dsn: "https://0a7473685132dfcf2fbb9352c32d308d@sentry.my.sentry.io/4508728444321793",
+  dsn: dsn,
   Integrations: SENTRY_INTEGRATIONS,
   // Tracing
   tracesSampleRate: 1.0, //  Capture 100% of the transactions

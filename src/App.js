@@ -3,7 +3,7 @@ import logo from "./logo.svg";
 import "./App.css";
 
 import { _experiment_log } from "@sentry/browser";
-const { error, log } = _experiment_log;
+const { error, info, fmt } = _experiment_log;
 
 const longBody = `Added item to shopping cart: Xbox One X 500 GB 2018 Payment failure detected | userId=12345 | orderId=67890 | paymentMethod="Credit Card" |
 amount=199.99 | retryCount=2 | errorCode="PAYMENT_TIMEOUT" | timestamp="2024-11-15T14:32:07Z" |
@@ -19,7 +19,11 @@ function App() {
 
   function callLog() {
     const user = 123;
-    log(longBody, { user });
+    const payInfo = { payment: { paymentId: 1312, paymentType: "card" } };
+    const ip = "31.41.115.122"
+    const card = "4111111111111111"
+    const query = "something something 31.41.115.122 " + card;
+    info(fmt`info: ${longBody} query:${query} ip:${ip} card:${card}`, { user, payInfo, ip, card });
   }
 
   return (
@@ -28,8 +32,8 @@ function App() {
         <img src={logo} className="App-logo" alt="logo" />
         <p>Test Application</p>
         <p>
-          <button onClick={callMethodThatDoesntExist}>Capture Error Log</button>
-          <button onClick={callLog}>Capture Error Log</button>
+          <button onClick={callMethodThatDoesntExist}>Capture Error</button>
+          <button onClick={callLog}>Capture Log</button>
         </p>
       </header>
     </div>

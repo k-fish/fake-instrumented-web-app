@@ -2,12 +2,12 @@
   "version": "v1",
   "packages": {
     "@sentry/browser": {
-      "signature": "9cde7ebc68f3fb5c047013cd40c111cc",
+      "signature": "795d5ebe84fda36c19921481ceb0ed56",
       "file": true,
-      "replaced": "^9.1.0"
+      "replaced": "9.2.0-alpha.0"
     },
     "@sentry/core": {
-      "signature": "e7342d8379678870b15ece7613b16afe",
+      "signature": "00d6f4a0850b1f7b69e7d103c5bed5d0",
       "file": true
     }
   }
