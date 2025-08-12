@@ -18,14 +18,23 @@ const randomCharacters = () =>
     .replace(/[^a-z]+/g, "")
     .substr(0, 5);
 
+const dsnEU = `https://e548fcedc35a3a0d2bd712212f3df50b@o4507154197774336.ingest.de.sentry.io/4509078681747536`;
+const dsnl2 =
+  "http://e0bc3e6090a4f8a822108aff6fd15a86@sentry.dev.getsentry.net:8000/2";
 const dsnl =
   "http://072dda62717bd34a1457af2c28e7494b@sentry.dev.getsentry.net:8000/4";
 const dsn4 =
   "https://0a7473685132dfcf2fbb9352c32d308d@sentry.my.sentry.io/4508728444321793";
-const dsn =
+const dsnkfish =
   "https://b8793daed00c88032f55a4649b1e85a8@o1.ingest.us.sentry.io/4508892109012993"; // test-kfish logs
-const dsnabhi = "https://1238b05a4527146d02d1608e205128e7@o447951.ingest.us.sentry.io/4508920403722240"
+const dsnabhi =
+  "https://1238b05a4527146d02d1608e205128e7@o447951.ingest.us.sentry.io/4508920403722240";
+const dsnnewl =
+  "http://ca8c0eadaed7c908e266b0506371cf78@sentry.dev.getsentry.net:8000/2";
+const dsnlocal =
+  "http://ca8c0eadaed7c908e266b0506371cf78@sentry.dev.getsentry.net:80/2";
 
+const dsn = dsnlocal;
 
 Sentry.init({
   dsn: dsn,

@@ -20,10 +20,11 @@ function App() {
   function callLog() {
     const user = 123;
     const payInfo = { payment: { paymentId: 1312, paymentType: "card" } };
+    const code = {"code.line.number": 115.0 }
     const ip = "31.41.115.122"
     const card = "4111111111111111"
     const query = "something something 31.41.115.122 " + card;
-    info(fmt`info: ${longBody} query:${query} ip:${ip} card:${card}`, { user, payInfo, ip, card });
+    info(fmt`info: ${longBody} query:${query} ip:${ip} card:${card}`, { user, payInfo, ip, card, ...code });
   }
 
   return (

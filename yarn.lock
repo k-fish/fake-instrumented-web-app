@@ -2386,13 +2386,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/core@file:.yalc/@sentry/core::locator=fake-instrumented-web-app%40workspace%3A.":
-  version: 9.1.0+00d6f4a0
-  resolution: "@sentry/core@file:.yalc/@sentry/core#.yalc/@sentry/core::hash=1325f9&locator=fake-instrumented-web-app%40workspace%3A."
-  checksum: acfa1da1e3631e9e020983e466ec5880db981625b46d5627a62b9a50b2339a074bbd9518516ebfe2c4766e42ba9cc918c397db3ffc5c3205c548cfeda9f51f45
-  languageName: node
-  linkType: hard
-
 "@sentry/core@npm:9.5.0-alpha.0":
   version: 9.5.0-alpha.0
   resolution: "@sentry/core@npm:9.5.0-alpha.0"
@@ -6216,7 +6209,7 @@ __metadata:
   resolution: "fake-instrumented-web-app@workspace:."
   dependencies:
     "@sentry/browser": 9.5.0-alpha.0
-    "@sentry/core": "file:.yalc/@sentry/core"
+    "@sentry/core": 9.5.0-alpha.0
     "@testing-library/jest-dom": ^6.6.3
     "@testing-library/react": ^16.2.0
     "@testing-library/user-event": ^14.6.1
