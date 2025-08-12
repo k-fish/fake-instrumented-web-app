@@ -28,7 +28,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         [null, {\
           "packageLocation": "./",\
           "packageDependencies": [\
-            ["@sentry/browser", "npm:9.5.0-alpha.0"],\
+            ["@sentry/browser", "npm:10.5.0"],\
             ["@sentry/core", "npm:9.5.0-alpha.0"],\
             ["@testing-library/jest-dom", "npm:6.6.3"],\
             ["@testing-library/react", "virtual:94aae38ea03b4bc6922c8ce30d5a38d69854d32bc4fa332bd7b26cf9af457031918aee2e99e6ef88de8f32850d4a06d1915ef6e708483ddad1c2a54b524023dc#npm:16.2.0"],\
@@ -4229,62 +4229,69 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["@sentry-internal/browser-utils", [\
-        ["npm:9.5.0-alpha.0", {\
-          "packageLocation": "./.yarn/cache/@sentry-internal-browser-utils-npm-9.5.0-alpha.0-2c592717ae-54f993a08f.zip/node_modules/@sentry-internal/browser-utils/",\
+        ["npm:10.5.0", {\
+          "packageLocation": "./.yarn/cache/@sentry-internal-browser-utils-npm-10.5.0-3190cae105-3f5c344005.zip/node_modules/@sentry-internal/browser-utils/",\
           "packageDependencies": [\
-            ["@sentry-internal/browser-utils", "npm:9.5.0-alpha.0"],\
-            ["@sentry/core", "npm:9.5.0-alpha.0"]\
+            ["@sentry-internal/browser-utils", "npm:10.5.0"],\
+            ["@sentry/core", "npm:10.5.0"]\
           ],\
           "linkType": "HARD"\
         }]\
       ]],\
       ["@sentry-internal/feedback", [\
-        ["npm:9.5.0-alpha.0", {\
-          "packageLocation": "./.yarn/cache/@sentry-internal-feedback-npm-9.5.0-alpha.0-e3ded149a7-8307ee8964.zip/node_modules/@sentry-internal/feedback/",\
+        ["npm:10.5.0", {\
+          "packageLocation": "./.yarn/cache/@sentry-internal-feedback-npm-10.5.0-2859dc5799-fa6436438e.zip/node_modules/@sentry-internal/feedback/",\
           "packageDependencies": [\
-            ["@sentry-internal/feedback", "npm:9.5.0-alpha.0"],\
-            ["@sentry/core", "npm:9.5.0-alpha.0"]\
+            ["@sentry-internal/feedback", "npm:10.5.0"],\
+            ["@sentry/core", "npm:10.5.0"]\
           ],\
           "linkType": "HARD"\
         }]\
       ]],\
       ["@sentry-internal/replay", [\
-        ["npm:9.5.0-alpha.0", {\
-          "packageLocation": "./.yarn/cache/@sentry-internal-replay-npm-9.5.0-alpha.0-c41912e68b-8fca092fb6.zip/node_modules/@sentry-internal/replay/",\
+        ["npm:10.5.0", {\
+          "packageLocation": "./.yarn/cache/@sentry-internal-replay-npm-10.5.0-579bba3645-dead239076.zip/node_modules/@sentry-internal/replay/",\
           "packageDependencies": [\
-            ["@sentry-internal/replay", "npm:9.5.0-alpha.0"],\
-            ["@sentry-internal/browser-utils", "npm:9.5.0-alpha.0"],\
-            ["@sentry/core", "npm:9.5.0-alpha.0"]\
+            ["@sentry-internal/replay", "npm:10.5.0"],\
+            ["@sentry-internal/browser-utils", "npm:10.5.0"],\
+            ["@sentry/core", "npm:10.5.0"]\
           ],\
           "linkType": "HARD"\
         }]\
       ]],\
       ["@sentry-internal/replay-canvas", [\
-        ["npm:9.5.0-alpha.0", {\
-          "packageLocation": "./.yarn/cache/@sentry-internal-replay-canvas-npm-9.5.0-alpha.0-b85a1f7ab0-e807eaab7d.zip/node_modules/@sentry-internal/replay-canvas/",\
+        ["npm:10.5.0", {\
+          "packageLocation": "./.yarn/cache/@sentry-internal-replay-canvas-npm-10.5.0-f1eaf1c1cd-017e8904b8.zip/node_modules/@sentry-internal/replay-canvas/",\
           "packageDependencies": [\
-            ["@sentry-internal/replay-canvas", "npm:9.5.0-alpha.0"],\
-            ["@sentry-internal/replay", "npm:9.5.0-alpha.0"],\
-            ["@sentry/core", "npm:9.5.0-alpha.0"]\
+            ["@sentry-internal/replay-canvas", "npm:10.5.0"],\
+            ["@sentry-internal/replay", "npm:10.5.0"],\
+            ["@sentry/core", "npm:10.5.0"]\
           ],\
           "linkType": "HARD"\
         }]\
       ]],\
       ["@sentry/browser", [\
-        ["npm:9.5.0-alpha.0", {\
-          "packageLocation": "./.yarn/cache/@sentry-browser-npm-9.5.0-alpha.0-d62c92cc25-b3322bb6b1.zip/node_modules/@sentry/browser/",\
+        ["npm:10.5.0", {\
+          "packageLocation": "./.yarn/cache/@sentry-browser-npm-10.5.0-550adfe590-260c2cfe63.zip/node_modules/@sentry/browser/",\
           "packageDependencies": [\
-            ["@sentry/browser", "npm:9.5.0-alpha.0"],\
-            ["@sentry-internal/browser-utils", "npm:9.5.0-alpha.0"],\
-            ["@sentry-internal/feedback", "npm:9.5.0-alpha.0"],\
-            ["@sentry-internal/replay", "npm:9.5.0-alpha.0"],\
-            ["@sentry-internal/replay-canvas", "npm:9.5.0-alpha.0"],\
-            ["@sentry/core", "npm:9.5.0-alpha.0"]\
+            ["@sentry/browser", "npm:10.5.0"],\
+            ["@sentry-internal/browser-utils", "npm:10.5.0"],\
+            ["@sentry-internal/feedback", "npm:10.5.0"],\
+            ["@sentry-internal/replay", "npm:10.5.0"],\
+            ["@sentry-internal/replay-canvas", "npm:10.5.0"],\
+            ["@sentry/core", "npm:10.5.0"]\
           ],\
           "linkType": "HARD"\
         }]\
       ]],\
       ["@sentry/core", [\
+        ["npm:10.5.0", {\
+          "packageLocation": "./.yarn/cache/@sentry-core-npm-10.5.0-0287bb43a0-2135df412b.zip/node_modules/@sentry/core/",\
+          "packageDependencies": [\
+            ["@sentry/core", "npm:10.5.0"]\
+          ],\
+          "linkType": "HARD"\
+        }],\
         ["npm:9.5.0-alpha.0", {\
           "packageLocation": "./.yarn/cache/@sentry-core-npm-9.5.0-alpha.0-d8dc4b9538-4caf0e4900.zip/node_modules/@sentry/core/",\
           "packageDependencies": [\
@@ -9420,7 +9427,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./",\
           "packageDependencies": [\
             ["fake-instrumented-web-app", "workspace:."],\
-            ["@sentry/browser", "npm:9.5.0-alpha.0"],\
+            ["@sentry/browser", "npm:10.5.0"],\
             ["@sentry/core", "npm:9.5.0-alpha.0"],\
             ["@testing-library/jest-dom", "npm:6.6.3"],\
             ["@testing-library/react", "virtual:94aae38ea03b4bc6922c8ce30d5a38d69854d32bc4fa332bd7b26cf9af457031918aee2e99e6ef88de8f32850d4a06d1915ef6e708483ddad1c2a54b524023dc#npm:16.2.0"],\
