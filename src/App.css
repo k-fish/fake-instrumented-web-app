@@ -1,3 +1,8 @@
+:root {
+  --logo-stroke-width: 3px;
+  --logo-stroke-color: black;
+}
+
 .App {
   text-align: center;
   min-height: 100vh;
@@ -71,6 +76,13 @@
   background: var(--sentry-black);
   transform: perspective(1000px) rotateX(25deg) rotateY(-15deg) rotateZ(5deg);
   transform-style: preserve-3d;
+}
+
+.App-logo path {
+  stroke: var(--logo-stroke-color);
+  stroke-width: var(--logo-stroke-width);
+  stroke-linejoin: round;
+  stroke-linecap: round;
 }
 
 @keyframes logo-spin {
