@@ -2373,7 +2373,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/browser@npm:latest":
+"@sentry/browser@npm:10.5.0":
   version: 10.5.0
   resolution: "@sentry/browser@npm:10.5.0"
   dependencies:
@@ -2390,13 +2390,6 @@ __metadata:
   version: 10.5.0
   resolution: "@sentry/core@npm:10.5.0"
   checksum: 2135df412ba3e42fbe27798166681a359a0c18bb069d7261f06d620c7de23be9896f0704c5ecff20a729a1d9c2c1c41312b59e688e0cf2bb0969739a6834a4de
-  languageName: node
-  linkType: hard
-
-"@sentry/core@npm:9.5.0-alpha.0":
-  version: 9.5.0-alpha.0
-  resolution: "@sentry/core@npm:9.5.0-alpha.0"
-  checksum: 4caf0e490050a1947b79485d19469a052bc68ea3d383dcdcdaee4348fcddb4d864e11de707a9bd25064230d293d93aaa7825d63be51be6860928c57c6eee62b0
   languageName: node
   linkType: hard
 
@@ -6215,8 +6208,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "fake-instrumented-web-app@workspace:."
   dependencies:
-    "@sentry/browser": latest
-    "@sentry/core": 9.5.0-alpha.0
+    "@sentry/browser": 10.5.0
+    "@sentry/core": 10.5.0
     "@testing-library/jest-dom": ^6.6.3
     "@testing-library/react": ^16.2.0
     "@testing-library/user-event": ^14.6.1

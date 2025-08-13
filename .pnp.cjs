@@ -29,7 +29,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./",\
           "packageDependencies": [\
             ["@sentry/browser", "npm:10.5.0"],\
-            ["@sentry/core", "npm:9.5.0-alpha.0"],\
+            ["@sentry/core", "npm:10.5.0"],\
             ["@testing-library/jest-dom", "npm:6.6.3"],\
             ["@testing-library/react", "virtual:94aae38ea03b4bc6922c8ce30d5a38d69854d32bc4fa332bd7b26cf9af457031918aee2e99e6ef88de8f32850d4a06d1915ef6e708483ddad1c2a54b524023dc#npm:16.2.0"],\
             ["@testing-library/user-event", "virtual:94aae38ea03b4bc6922c8ce30d5a38d69854d32bc4fa332bd7b26cf9af457031918aee2e99e6ef88de8f32850d4a06d1915ef6e708483ddad1c2a54b524023dc#npm:14.6.1"],\
@@ -4289,13 +4289,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/@sentry-core-npm-10.5.0-0287bb43a0-2135df412b.zip/node_modules/@sentry/core/",\
           "packageDependencies": [\
             ["@sentry/core", "npm:10.5.0"]\
-          ],\
-          "linkType": "HARD"\
-        }],\
-        ["npm:9.5.0-alpha.0", {\
-          "packageLocation": "./.yarn/cache/@sentry-core-npm-9.5.0-alpha.0-d8dc4b9538-4caf0e4900.zip/node_modules/@sentry/core/",\
-          "packageDependencies": [\
-            ["@sentry/core", "npm:9.5.0-alpha.0"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -9428,7 +9421,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [\
             ["fake-instrumented-web-app", "workspace:."],\
             ["@sentry/browser", "npm:10.5.0"],\
-            ["@sentry/core", "npm:9.5.0-alpha.0"],\
+            ["@sentry/core", "npm:10.5.0"],\
             ["@testing-library/jest-dom", "npm:6.6.3"],\
             ["@testing-library/react", "virtual:94aae38ea03b4bc6922c8ce30d5a38d69854d32bc4fa332bd7b26cf9af457031918aee2e99e6ef88de8f32850d4a06d1915ef6e708483ddad1c2a54b524023dc#npm:16.2.0"],\
             ["@testing-library/user-event", "virtual:94aae38ea03b4bc6922c8ce30d5a38d69854d32bc4fa332bd7b26cf9af457031918aee2e99e6ef88de8f32850d4a06d1915ef6e708483ddad1c2a54b524023dc#npm:14.6.1"],\

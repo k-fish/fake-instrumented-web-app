@@ -31,8 +31,10 @@ const dsnabhi =
   "https://1238b05a4527146d02d1608e205128e7@o447951.ingest.us.sentry.io/4508920403722240";
 const dsnnewl =
   "http://ca8c0eadaed7c908e266b0506371cf78@sentry.dev.getsentry.net:8000/2";
+// const dsnlocal =
+//   "http://ca8c0eadaed7c908e266b0506371cf78@sentry.dev.getsentry.net:80/2";
 const dsnlocal =
-  "http://ca8c0eadaed7c908e266b0506371cf78@sentry.dev.getsentry.net:80/2";
+  "http://6ffbcc9a36d21d024ee8b2d487c7f0d3@sentry.dev.getsentry.net:8000/2";
 
 const dsn = dsnlocal;
 
@@ -43,9 +45,7 @@ Sentry.init({
   tracesSampleRate: 1.0, //  Capture 100% of the transactions
   // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
   tracePropagationTargets: ["localhost", /^https:\/\/yourserver\.io\/api/],
-  _experiments: {
-    enableLogs: true,
-  },
+  enableLogs: true,
 });
 
 // Set device context via setContext
