@@ -1,5 +1,5 @@
 :root {
-  --logo-stroke-width: 6px;
+  --logo-stroke-width: 2px;
   --logo-stroke-color: black;
 }
 
@@ -84,6 +84,8 @@
   stroke-linejoin: round !important;
   stroke-linecap: round !important;
   fill: #362d59 !important;
+  paint-order: stroke fill !important;
+  vector-effect: non-scaling-stroke !important;
 }
 
 .App-logo svg path {
@@ -92,7 +94,8 @@
   stroke-linejoin: round !important;
   stroke-linecap: round !important;
   fill: #362d59 !important;
-  paint-order: fill stroke !important;
+  paint-order: stroke fill !important;
+  vector-effect: non-scaling-stroke !important;
 }
 
 /* More specific targeting */
@@ -104,7 +107,8 @@ svg.App-logo path {
   stroke-linejoin: round !important;
   stroke-linecap: round !important;
   fill: #362d59 !important;
-  paint-order: fill stroke !important;
+  paint-order: stroke fill !important;
+  vector-effect: non-scaling-stroke !important;
 }
 
 @keyframes logo-spin {
