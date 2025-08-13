@@ -234,7 +234,7 @@
 
 /* Neobrutal Button Styling */
 .App-header button {
-  background: #64b5f6;
+  background: #ab47bc;
   color: var(--sentry-white);
   border: var(--brutal-border);
   padding: 15px 25px;
@@ -252,7 +252,7 @@
 }
 
 .App-header button:hover {
-  background: #42a5f5;
+  background: #9c27b0;
   transform: translate(2px, 2px);
   box-shadow: 2px 2px 0px var(--sentry-black);
 }
