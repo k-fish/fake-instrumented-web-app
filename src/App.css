@@ -472,6 +472,7 @@ svg.App-logo path {
   color: var(--sentry-white);
   font-size: 14px;
   font-weight: 500;
+  font-family: 'Courier New', monospace;
   transition: all 0.3s ease;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
@@ -479,6 +480,7 @@ svg.App-logo path {
 .extra-data-row input::placeholder {
   color: rgba(255, 255, 255, 0.6);
   font-style: italic;
+  font-family: 'Courier New', monospace;
 }
 
 .extra-data-row input:focus {
