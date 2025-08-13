@@ -16,6 +16,8 @@ function App() {
     const saved = localStorage.getItem('extraData');
     return saved ? JSON.parse(saved) : [{ key: "", value: "" }];
   });
+  const [logSeverity, setLogSeverity] = useState('info');
+  const [fullText, setFullText] = useState(longBody);
 
   useEffect(() => {
     localStorage.setItem('extraData', JSON.stringify(extraData));
@@ -42,20 +44,53 @@ function App() {
       }
     });
 
-    info(fmt`info: ${longBody} query:${query} ip:${ip} card:${card}`, {
+    const logPayload = {
       user,
       payInfo,
       ip,
       card,
       ...code,
       attributes,
-    });
+    };
+
+    // Use the selected severity level
+    const logFunction = logger[logSeverity] || logger.info;
+    logFunction(fmt`${logSeverity}: ${fullText} query:${query} ip:${ip} card:${card}`, logPayload);
 
     // Immediate flush
     Sentry.flush(2000).then(() => {
       console.log('Log sent to Sentry');
     });
   }
+
+  // Generate current log payload for preview
+  const getCurrentLogPayload = () => {
+    const user = 123;
+    const payInfo = { payment: { paymentId: 1312, paymentType: "card" } };
+    const code = { "code.line.number": 115.0 };
+    const ip = "31.41.115.122";
+    const card = "4111111111111111";
+    const query = "something something 31.41.115.122 " + card;
+    
+    const attributes = {};
+    extraData.forEach(({ key, value }) => {
+      if (key.trim() && value.trim()) {
+        attributes[key.trim()] = value.trim();
+      }
+    });
+
+    return {
+      message: `${logSeverity}: ${fullText} query:${query} ip:${ip} card:${card}`,
+      payload: {
+        user,
+        payInfo,
+        ip,
+        card,
+        ...code,
+        attributes,
+      }
+    };
+  };
 
   function addExtraDataRow() {
     setExtraData([...extraData, { key: "", value: "" }]);
@@ -89,27 +124,71 @@ function App() {
         <p className="glitch-text" data-text="ERROR MONITORING SYSTEM">ERROR MONITORING SYSTEM</p> */}
         
         <div className="extra-data-section">
-          {/* <h3>Extra Data</h3> */}
-          {extraData.map((row, index) => (
-            <div key={index} className="extra-data-row">
-              <input
-                type="text"
-                placeholder="Key"
-                value={row.key}
-                onChange={(e) => updateExtraDataRow(index, 'key', e.target.value)}
-              />
-              <input
-                type="text"
-                placeholder="Value"
-                value={row.value}
-                onChange={(e) => updateExtraDataRow(index, 'value', e.target.value)}
-              />
-              <button data-button-size="sm" onClick={() => removeExtraDataRow(index)}>Del</button>
+          <div className="input-section">
+            <div className="severity-row">
+              <label htmlFor="severity-select">Log Severity:</label>
+              <select 
+                id="severity-select"
+                value={logSeverity} 
+                onChange={(e) => setLogSeverity(e.target.value)}
+                className="severity-dropdown"
+              >
+                <option value="debug">debug</option>
+                <option value="info">info</option>
+                <option value="warn">warn</option>
+                <option value="error">error</option>
+                <option value="fatal">fatal</option>
+              </select>
             </div>
-          ))}
-          <div className="button-row">
-            <button data-button-size="sm" onClick={addExtraDataRow}>Add</button>
-            <button data-button-size="sm" className="clear-button" onClick={clearAllData}>Clear</button>
+            <div className="full-text-section">
+              <label htmlFor="full-text">Full Text:</label>
+              <textarea
+                id="full-text"
+                value={fullText}
+                onChange={(e) => setFullText(e.target.value)}
+                className="full-text-area"
+                rows={4}
+              />
+            </div>
+          </div>
+          
+          <div className="data-content">
+            <div className="data-left">
+              <h4>Extra Data</h4>
+              {extraData.map((row, index) => (
+                <div key={index} className="extra-data-row">
+                  <input
+                    type="text"
+                    placeholder="Key"
+                    value={row.key}
+                    onChange={(e) => updateExtraDataRow(index, 'key', e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Value"
+                    value={row.value}
+                    onChange={(e) => updateExtraDataRow(index, 'value', e.target.value)}
+                  />
+                  <button data-button-size="sm" onClick={() => removeExtraDataRow(index)}>Del</button>
+                </div>
+              ))}
+            </div>
+            
+            <div className="vertical-divider"></div>
+            
+            <div className="data-right">
+              <h4>Log Payload Preview</h4>
+              <pre className="json-preview">
+                {JSON.stringify(getCurrentLogPayload(), null, 2)}
+              </pre>
+            </div>
+          </div>
+          
+          <div className="data-footer">
+            <div className="button-row">
+              <button data-button-size="sm" onClick={addExtraDataRow}>Add</button>
+              <button data-button-size="sm" className="clear-button" onClick={clearAllData}>Clear</button>
+            </div>
           </div>
         </div>
 
