@@ -58,22 +58,26 @@
 }
 
 @keyframes glitch-shake {
-  0%, 90%, 100% {
+  0%, 95%, 100% {
     transform: translate(0, 0) rotate(0deg);
-    filter: drop-shadow(0 0 20px var(--sentry-purple));
+    filter: drop-shadow(0 0 8px var(--sentry-purple)) drop-shadow(0 0 16px var(--sentry-purple));
   }
-  10% {
-    transform: translate(-2px, 1px) rotate(0.5deg);
-    filter: drop-shadow(2px -2px 20px var(--sentry-red)) drop-shadow(-2px 2px 20px var(--sentry-green));
+  2% {
+    transform: translate(-1px, 0.5px) rotate(0.2deg);
+    filter: drop-shadow(1px -1px 6px var(--sentry-red)) drop-shadow(-1px 1px 8px var(--sentry-green)) drop-shadow(0 0 12px var(--sentry-purple));
   }
-  20% {
-    transform: translate(2px, -1px) rotate(-0.5deg);
-    filter: drop-shadow(-2px 2px 20px var(--sentry-orange)) drop-shadow(2px -2px 20px var(--sentry-purple));
+  4% {
+    transform: translate(1px, -0.5px) rotate(-0.2deg);
+    filter: drop-shadow(-1px 1px 6px var(--sentry-orange)) drop-shadow(1px -1px 8px var(--sentry-purple)) drop-shadow(0 0 12px var(--sentry-red));
   }
-  30% {
-    transform: translate(-1px, 2px) rotate(0.3deg);
-    filter: drop-shadow(1px 1px 20px var(--sentry-green)) drop-shadow(-1px -1px 20px var(--sentry-red));
+  6% {
+    transform: translate(-0.5px, 1px) rotate(0.1deg);
+    filter: drop-shadow(0.5px 0.5px 6px var(--sentry-green)) drop-shadow(-0.5px -0.5px 8px var(--sentry-red)) drop-shadow(0 0 12px var(--sentry-orange));
   }
+}
+
+.App-logo {
+  position: relative;
 }
 
 .App-logo::before {
@@ -83,27 +87,90 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(90deg, 
+  background: linear-gradient(45deg, 
     transparent 0%, 
-    var(--sentry-red) 20%, 
-    transparent 21%, 
-    transparent 40%, 
-    var(--sentry-green) 60%, 
-    transparent 61%, 
-    transparent 80%, 
-    var(--sentry-purple) 100%);
+    var(--sentry-red) 25%, 
+    transparent 26%, 
+    transparent 49%, 
+    var(--sentry-green) 50%, 
+    transparent 51%, 
+    transparent 74%, 
+    var(--sentry-purple) 75%, 
+    transparent 100%);
   opacity: 0;
-  animation: glitch-bars 0.1s infinite;
-  mix-blend-mode: overlay;
+  animation: logo-glitch-mask 8s infinite;
+  mix-blend-mode: screen;
+  mask: url('./sentry-logo.svg');
+  -webkit-mask: url('./sentry-logo.svg');
+  mask-size: contain;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-position: center;
 }
 
-@keyframes glitch-bars {
-  0% { opacity: 0; }
-  5% { opacity: 0.8; transform: translateX(-100%); }
-  10% { opacity: 0; }
-  15% { opacity: 0.6; transform: translateX(100%); }
-  20% { opacity: 0; }
-  100% { opacity: 0; }
+.App-logo::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle, var(--sentry-purple) 0%, transparent 70%);
+  opacity: 0;
+  animation: logo-bloom 6s infinite;
+  mix-blend-mode: screen;
+  mask: url('./sentry-logo.svg');
+  -webkit-mask: url('./sentry-logo.svg');
+  mask-size: contain;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-position: center;
+}
+
+@keyframes logo-glitch-mask {
+  0%, 90%, 100% { 
+    opacity: 0; 
+    transform: translateX(0) scaleX(1);
+  }
+  2% { 
+    opacity: 0.3; 
+    transform: translateX(-2px) scaleX(1.02);
+  }
+  4% { 
+    opacity: 0.5; 
+    transform: translateX(2px) scaleX(0.98);
+  }
+  6% { 
+    opacity: 0.2; 
+    transform: translateX(-1px) scaleX(1.01);
+  }
+  8% { 
+    opacity: 0; 
+    transform: translateX(0) scaleX(1);
+  }
+}
+
+@keyframes logo-bloom {
+  0%, 85%, 100% { 
+    opacity: 0; 
+    transform: scale(1);
+  }
+  5% { 
+    opacity: 0.1; 
+    transform: scale(1.05);
+  }
+  10% { 
+    opacity: 0.2; 
+    transform: scale(1.1);
+  }
+  15% { 
+    opacity: 0.1; 
+    transform: scale(1.05);
+  }
 }
 
 .App-header p {
@@ -113,18 +180,24 @@
   letter-spacing: 3px;
   margin: 20px 0;
   text-shadow: 2px 2px 0 var(--sentry-black);
-  animation: text-glitch 2s infinite;
+  animation: text-glitch 6s infinite;
 }
 
 @keyframes text-glitch {
-  0%, 90%, 100% {
+  0%, 96%, 100% {
     text-shadow: 2px 2px 0 var(--sentry-black);
   }
-  10% {
+  2% {
     text-shadow: 
       2px 2px 0 var(--sentry-red),
+      -1px -1px 0 var(--sentry-green),
+      1px -1px 0 var(--sentry-purple);
+  }
+  4% {
+    text-shadow: 
+      1px 1px 0 var(--sentry-orange),
       -2px -2px 0 var(--sentry-green),
-      2px -2px 0 var(--sentry-purple);
+      2px -1px 0 var(--sentry-red);
   }
 }
 
@@ -245,37 +318,37 @@
 }
 
 @keyframes glitch-1 {
-  0%, 100% {
+  0%, 95%, 100% {
     transform: translate(0);
   }
-  20% {
-    transform: translate(-2px, 2px);
+  2% {
+    transform: translate(-1px, 1px);
   }
-  40% {
-    transform: translate(-2px, -2px);
+  4% {
+    transform: translate(-1px, -1px);
   }
-  60% {
-    transform: translate(2px, 2px);
+  6% {
+    transform: translate(1px, 1px);
   }
-  80% {
-    transform: translate(2px, -2px);
+  8% {
+    transform: translate(1px, -1px);
   }
 }
 
 @keyframes glitch-2 {
-  0%, 100% {
+  0%, 95%, 100% {
     transform: translate(0);
   }
-  20% {
-    transform: translate(2px, 2px);
+  2% {
+    transform: translate(1px, 1px);
   }
-  40% {
-    transform: translate(2px, -2px);
+  4% {
+    transform: translate(1px, -1px);
   }
-  60% {
-    transform: translate(-2px, 2px);
+  6% {
+    transform: translate(-1px, 1px);
   }
-  80% {
-    transform: translate(-2px, -2px);
+  8% {
+    transform: translate(-1px, -1px);
   }
 }
