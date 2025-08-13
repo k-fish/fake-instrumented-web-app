@@ -1,38 +1,281 @@
 .App {
   text-align: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--sentry-black) 0%, var(--sentry-gray-dark) 100%);
+  position: relative;
+  overflow: hidden;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.App::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 25% 25%, var(--sentry-purple) 2px, transparent 2px),
+    radial-gradient(circle at 75% 75%, var(--sentry-red) 1px, transparent 1px);
+  background-size: 50px 50px, 30px 30px;
+  opacity: 0.1;
+  animation: dither 2s infinite linear;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+@keyframes dither {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(1px, -1px); }
+  50% { transform: translate(-1px, 1px); }
+  75% { transform: translate(1px, 1px); }
+  100% { transform: translate(0, 0); }
 }
 
 .App-header {
-  background-color: #282c34;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  font-size: calc(16px + 2vmin);
+  color: var(--sentry-gray-lightest);
+  position: relative;
+  z-index: 1;
 }
 
-.App-link {
-  color: #61dafb;
+.App-logo {
+  height: 15vmin;
+  pointer-events: none;
+  filter: drop-shadow(0 0 20px var(--sentry-purple));
+  animation: logo-spin 3s linear infinite, glitch-shake 0.3s infinite;
 }
 
-@keyframes App-logo-spin {
+@keyframes logo-spin {
   from {
     transform: rotate(0deg);
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes glitch-shake {
+  0%, 90%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+    filter: drop-shadow(0 0 20px var(--sentry-purple));
+  }
+  10% {
+    transform: translate(-2px, 1px) rotate(0.5deg);
+    filter: drop-shadow(2px -2px 20px var(--sentry-red)) drop-shadow(-2px 2px 20px var(--sentry-green));
+  }
+  20% {
+    transform: translate(2px, -1px) rotate(-0.5deg);
+    filter: drop-shadow(-2px 2px 20px var(--sentry-orange)) drop-shadow(2px -2px 20px var(--sentry-purple));
+  }
+  30% {
+    transform: translate(-1px, 2px) rotate(0.3deg);
+    filter: drop-shadow(1px 1px 20px var(--sentry-green)) drop-shadow(-1px -1px 20px var(--sentry-red));
+  }
+}
+
+.App-logo::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    var(--sentry-red) 20%, 
+    transparent 21%, 
+    transparent 40%, 
+    var(--sentry-green) 60%, 
+    transparent 61%, 
+    transparent 80%, 
+    var(--sentry-purple) 100%);
+  opacity: 0;
+  animation: glitch-bars 0.1s infinite;
+  mix-blend-mode: overlay;
+}
+
+@keyframes glitch-bars {
+  0% { opacity: 0; }
+  5% { opacity: 0.8; transform: translateX(-100%); }
+  10% { opacity: 0; }
+  15% { opacity: 0.6; transform: translateX(100%); }
+  20% { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+.App-header p {
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin: 20px 0;
+  text-shadow: 2px 2px 0 var(--sentry-black);
+  animation: text-glitch 2s infinite;
+}
+
+@keyframes text-glitch {
+  0%, 90%, 100% {
+    text-shadow: 2px 2px 0 var(--sentry-black);
+  }
+  10% {
+    text-shadow: 
+      2px 2px 0 var(--sentry-red),
+      -2px -2px 0 var(--sentry-green),
+      2px -2px 0 var(--sentry-purple);
+  }
+}
+
+/* Neobrutal Button Styling */
+.App-header button {
+  background: var(--sentry-orange);
+  color: var(--sentry-black);
+  border: var(--brutal-border);
+  padding: 15px 25px;
+  margin: 10px;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: var(--brutal-shadow);
+  transition: all 0.1s ease;
+  position: relative;
+  image-rendering: pixelated;
+}
+
+.App-header button:hover {
+  background: var(--sentry-red);
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px var(--sentry-black);
+}
+
+.App-header button:active {
+  transform: translate(4px, 4px);
+  box-shadow: none;
+}
+
+.App-header button::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  background: var(--sentry-purple);
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+
+.App-header button:hover::before {
+  opacity: 0.3;
+  animation: button-glitch 0.2s infinite;
+}
+
+@keyframes button-glitch {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-1px, 1px); }
+  40% { transform: translate(1px, -1px); }
+  60% { transform: translate(-1px, -1px); }
+  80% { transform: translate(1px, 1px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* Pixelated dithering effect */
+.pixelated {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* Scanline effect overlay */
+.App::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(108, 95, 199, 0.03) 2px,
+    rgba(108, 95, 199, 0.03) 4px
+  );
+  pointer-events: none;
+  animation: scanlines 0.1s linear infinite;
+}
+
+@keyframes scanlines {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(4px); }
+}
+
+/* Additional glitch text effects */
+.glitch-text {
+  position: relative;
+  display: inline-block;
+}
+
+.glitch-text::before,
+.glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.glitch-text::before {
+  animation: glitch-1 0.5s infinite;
+  color: var(--sentry-red);
+  z-index: -1;
+}
+
+.glitch-text::after {
+  animation: glitch-2 0.5s infinite;
+  color: var(--sentry-green);
+  z-index: -2;
+}
+
+@keyframes glitch-1 {
+  0%, 100% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-2px, 2px);
+  }
+  40% {
+    transform: translate(-2px, -2px);
+  }
+  60% {
+    transform: translate(2px, 2px);
+  }
+  80% {
+    transform: translate(2px, -2px);
+  }
+}
+
+@keyframes glitch-2 {
+  0%, 100% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(2px, 2px);
+  }
+  40% {
+    transform: translate(2px, -2px);
+  }
+  60% {
+    transform: translate(-2px, 2px);
+  }
+  80% {
+    transform: translate(-2px, -2px);
   }
 }

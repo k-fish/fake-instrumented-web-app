@@ -1,5 +1,5 @@
 import React, { Fragment } from "react";
-import logo from "./logo.svg";
+import logo from "./sentry-logo.svg";
 import "./App.css";
 
 import { logger } from "@sentry/browser";
@@ -36,11 +36,12 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>Test Application</p>
+        <img src={logo} className="App-logo pixelated" alt="sentry logo" />
+        <p className="glitch-text" data-text="SENTRY TEST APP">SENTRY TEST APP</p>
+        <p className="glitch-text" data-text="ERROR MONITORING SYSTEM">ERROR MONITORING SYSTEM</p>
         <p>
-          <button onClick={callMethodThatDoesntExist}>Capture Error</button>
-          <button onClick={callLog}>Capture Log</button>
+          <button onClick={callMethodThatDoesntExist}>CAPTURE ERROR</button>
+          <button onClick={callLog}>CAPTURE LOG</button>
         </p>
       </header>
     </div>
