@@ -384,3 +384,95 @@
     transform: translate(-1px, -1px);
   }
 }
+
+.extra-data-section {
+  margin: 20px 0;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.extra-data-section h3 {
+  margin-top: 0;
+  color: var(--sentry-white);
+  font-size: 1.2em;
+  margin-bottom: 15px;
+}
+
+.extra-data-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.extra-data-row input {
+  flex: 1;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, var(--sentry-gray-dark) 0%, var(--sentry-black) 100%);
+  border: 2px solid transparent;
+  border-radius: 8px;
+  color: var(--sentry-white);
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.extra-data-row input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+}
+
+.extra-data-row input:focus {
+  outline: none;
+  border-color: var(--sentry-purple);
+  background: linear-gradient(135deg, var(--sentry-gray-dark) 0%, var(--sentry-purple) 5%, var(--sentry-black) 100%);
+  box-shadow: 0 6px 12px rgba(88, 86, 214, 0.3);
+  transform: translateY(-1px);
+}
+
+.extra-data-row button {
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 3px 6px rgba(255, 107, 107, 0.3);
+  min-width: 70px;
+}
+
+.extra-data-row button:hover {
+  background: linear-gradient(135deg, #ff5252 0%, #d32f2f 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 82, 82, 0.4);
+}
+
+.extra-data-section > button {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, var(--sentry-green) 0%, #43a047 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  margin-top: 15px;
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+  min-width: 120px;
+}
+
+.extra-data-section > button:hover {
+  background: linear-gradient(135deg, #66bb6a 0%, #388e3c 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(102, 187, 106, 0.4);
+}
