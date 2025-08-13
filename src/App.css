@@ -492,7 +492,6 @@ svg.App-logo path {
 }
 
 .full-text-area {
-  width: 100%;
   padding: 12px 16px;
   background: linear-gradient(135deg, var(--sentry-gray-dark) 0%, var(--sentry-black) 100%);
   border: 2px solid rgba(255, 255, 255, 0.1);
@@ -545,18 +544,49 @@ svg.App-logo path {
 }
 
 .json-preview {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  padding: 15px;
-  color: var(--sentry-gray-lightest);
+  padding: 12px 16px;
+  background: linear-gradient(135deg, var(--sentry-gray-dark) 0%, var(--sentry-black) 100%);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: var(--sentry-white);
   font-family: 'Courier New', monospace;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.4;
   overflow-y: auto;
   max-height: 300px;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+/* Custom scrollbar styling for webkit browsers */
+.json-preview::-webkit-scrollbar,
+.full-text-area::-webkit-scrollbar {
+  width: 8px;
+}
+
+.json-preview::-webkit-scrollbar-track,
+.full-text-area::-webkit-scrollbar-track {
+  background: var(--sentry-black);
+  border-radius: 4px;
+}
+
+.json-preview::-webkit-scrollbar-thumb,
+.full-text-area::-webkit-scrollbar-thumb {
+  background: var(--sentry-purple);
+  border-radius: 4px;
+  border: 1px solid var(--sentry-black);
+}
+
+.json-preview::-webkit-scrollbar-thumb:hover,
+.full-text-area::-webkit-scrollbar-thumb:hover {
+  background: var(--sentry-red);
+}
+
+/* Firefox scrollbar styling */
+.json-preview,
+.full-text-area {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sentry-purple) var(--sentry-black);
 }
 
 .data-footer {
