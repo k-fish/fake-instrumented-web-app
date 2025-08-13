@@ -140,16 +140,6 @@ function App() {
                 <option value="fatal">fatal</option>
               </select>
             </div>
-            <div className="full-text-section">
-              <label htmlFor="full-text">Full Text:</label>
-              <textarea
-                id="full-text"
-                value={fullText}
-                onChange={(e) => setFullText(e.target.value)}
-                className="full-text-area"
-                rows={4}
-              />
-            </div>
           </div>
           
           <div className="data-content">

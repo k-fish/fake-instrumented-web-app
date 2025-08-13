@@ -554,6 +554,7 @@ svg.App-logo path {
   line-height: 1.4;
   overflow-y: auto;
   max-height: 300px;
+  text-align: left;
   white-space: pre-wrap;
   word-break: break-word;
 }
