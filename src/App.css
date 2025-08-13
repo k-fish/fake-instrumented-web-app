@@ -554,6 +554,15 @@ svg.App-logo path {
   margin-top: 10px;
 }
 
+/* Add button stays green */
+.button-row button:not(.clear-button) {
+  background: var(--sentry-green) !important;
+}
+
+.button-row button:not(.clear-button):hover {
+  background: var(--sentry-green) !important;
+}
+
 /* Clear button styling */
 .clear-button {
   background: var(--sentry-red) !important;
