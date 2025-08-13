@@ -91,10 +91,10 @@ function App() {
                 value={row.value}
                 onChange={(e) => updateExtraDataRow(index, 'value', e.target.value)}
               />
-              <button onClick={() => removeExtraDataRow(index)}>🗑️ Delete</button>
+              <button data-button-size="sm" onClick={() => removeExtraDataRow(index)}>Del</button>
             </div>
           ))}
-          <button onClick={addExtraDataRow}>➕ Add Row</button>
+          <button data-button-size="sm" onClick={addExtraDataRow}>Add</button>
         </div>
 
         <p>
