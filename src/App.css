@@ -234,8 +234,8 @@
 
 /* Neobrutal Button Styling */
 .App-header button {
-  background: var(--sentry-orange);
-  color: var(--sentry-black);
+  background: #64b5f6;
+  color: var(--sentry-white);
   border: var(--brutal-border);
   padding: 15px 25px;
   margin: 10px;
@@ -252,7 +252,7 @@
 }
 
 .App-header button:hover {
-  background: var(--sentry-red);
+  background: #42a5f5;
   transform: translate(2px, 2px);
   box-shadow: 2px 2px 0px var(--sentry-black);
 }
@@ -437,42 +437,58 @@
 }
 
 .extra-data-row button {
-  padding: 10px 14px;
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
-  border: none;
-  border-radius: 6px;
-  color: white;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  box-shadow: 0 3px 6px rgba(255, 107, 107, 0.3);
-  min-width: 70px;
-}
-
-.extra-data-row button:hover {
-  background: linear-gradient(135deg, #ff5252 0%, #d32f2f 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(255, 82, 82, 0.4);
-}
-
-.extra-data-section > button {
-  padding: 12px 24px;
-  background: linear-gradient(135deg, var(--sentry-green) 0%, #43a047 100%);
-  border: none;
+  padding: 14px 18px;
+  background: #ff6b6b;
+  border: 3px solid var(--sentry-black);
   border-radius: 8px;
   color: white;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.2s ease;
+  font-size: 13px;
+  font-weight: 800;
+  font-family: 'Courier New', monospace;
+  text-transform: uppercase;
+  transition: all 0.1s ease;
+  box-shadow: 4px 4px 0px var(--sentry-black);
+  min-width: 90px;
+  position: relative;
+}
+
+.extra-data-row button:hover {
+  background: #ff5252;
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px var(--sentry-black);
+}
+
+.extra-data-row button:active {
+  transform: translate(4px, 4px);
+  box-shadow: none;
+}
+
+.extra-data-section > button {
+  padding: 16px 28px;
+  background: #4caf50;
+  border: 3px solid var(--sentry-black);
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 800;
+  font-family: 'Courier New', monospace;
+  text-transform: uppercase;
+  transition: all 0.1s ease;
   margin-top: 15px;
-  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
-  min-width: 120px;
+  box-shadow: 5px 5px 0px var(--sentry-black);
+  min-width: 140px;
+  position: relative;
 }
 
 .extra-data-section > button:hover {
-  background: linear-gradient(135deg, #66bb6a 0%, #388e3c 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 12px rgba(102, 187, 106, 0.4);
+  background: #43a047;
+  transform: translate(2px, 2px);
+  box-shadow: 3px 3px 0px var(--sentry-black);
+}
+
+.extra-data-section > button:active {
+  transform: translate(5px, 5px);
+  box-shadow: none;
 }
