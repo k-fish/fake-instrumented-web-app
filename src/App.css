@@ -444,7 +444,6 @@ svg.App-logo path {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  max-width: 500px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -493,7 +492,7 @@ svg.App-logo path {
 
 .extra-data-row button {
   padding: 14px 18px;
-  background: #ff6b6b;
+  background: var(--sentry-red);
   border: 3px solid var(--sentry-black);
   border-radius: 8px;
   color: white;
@@ -509,7 +508,7 @@ svg.App-logo path {
 }
 
 .extra-data-row button:hover {
-  background: #ff5252;
+  background: var(--sentry-red);
   transform: translate(2px, 2px);
   box-shadow: 2px 2px 0px var(--sentry-black);
 }
@@ -521,7 +520,7 @@ svg.App-logo path {
 
 .extra-data-section > button {
   padding: 16px 28px;
-  background: #4caf50;
+  background: var(--sentry-green);
   border: 3px solid var(--sentry-black);
   border-radius: 10px;
   color: white;
@@ -538,7 +537,7 @@ svg.App-logo path {
 }
 
 .extra-data-section > button:hover {
-  background: #43a047;
+  background: var(--sentry-green);
   transform: translate(2px, 2px);
   box-shadow: 3px 3px 0px var(--sentry-black);
 }
@@ -546,6 +545,22 @@ svg.App-logo path {
 .extra-data-section > button:active {
   transform: translate(5px, 5px);
   box-shadow: none;
+}
+
+/* Button row layout */
+.button-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* Clear button styling */
+.clear-button {
+  background: var(--sentry-red) !important;
+}
+
+.clear-button:hover {
+  background: var(--sentry-red) !important;
 }
 
 /* Small button size modifier */
