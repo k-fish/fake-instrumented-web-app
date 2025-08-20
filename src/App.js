@@ -58,7 +58,7 @@ function App() {
     logFunction(fmt`${logSeverity}: ${fullText} query:${query} ip:${ip} card:${card}`, logPayload);
 
     // Immediate flush
-    Sentry.flush(2000).then(() => {
+    Sentry.flush(100).then(() => {
       console.log('Log sent to Sentry');
     });
   }
