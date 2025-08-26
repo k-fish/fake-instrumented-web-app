@@ -33,11 +33,14 @@ const dsnnewl =
   "http://ca8c0eadaed7c908e266b0506371cf78@sentry.dev.getsentry.net:8000/2";
 // const dsnlocal =
 //   "http://ca8c0eadaed7c908e266b0506371cf78@sentry.dev.getsentry.net:80/2";
-const dsnLocalViaProxy = "http://6ffbcc9a36d21d024ee8b2d487c7f0d3@sentry.dev.getsentry.net:8000/2";
+// const dsnLocalViaProxy = "http://6ffbcc9a36d21d024ee8b2d487c7f0d3@sentry.dev.getsentry.net:8000/2";
+const dsnmagikrop = "https://73acf70525a17b22d278f2514e483e48@o408219.ingest.us.sentry.io/4509878521167872"
+const dsnprod = "https://b8793daed00c88032f55a4649b1e85a8@o1.ingest.us.sentry.io/4508892109012993"
+const dsnLocalViaProxy = "http://6ffbcc9a36d21d024ee8b2d487c7f0d3@sentry.dev.getsentry.net:3001/2";
 // const dsnlocal =
 //   "http://6ffbcc9a36d21d024ee8b2d487c7f0d3@sentry.dev.getsentry.net:3001/2";
 
-const dsn = dsnLocalViaProxy;
+const dsn = dsnmagikrop;
 
 Sentry.init({
   dsn: dsn,

@@ -50,7 +50,7 @@ function App() {
       ip,
       card,
       ...code,
-      attributes,
+      ...attributes,
     };
 
     // Use the selected severity level
