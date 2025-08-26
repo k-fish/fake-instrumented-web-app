@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import SentryInitEntry from './SentryInitEntry';
+import SentryInitEntry from './SentryInitEntry.js';
 
 const ConfigPicker = () => {
   const [configEntries, setConfigEntries] = useState([]);

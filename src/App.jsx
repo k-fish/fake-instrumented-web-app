@@ -1,6 +1,6 @@
 import React, { Fragment, useState, useEffect } from "react";
 import "./App.css";
-import ConfigPicker from "./ConfigPicker";
+import ConfigPicker from "./ConfigPicker.jsx";
 
 import { logger } from "@sentry/browser";
 import * as Sentry from "@sentry/browser";
