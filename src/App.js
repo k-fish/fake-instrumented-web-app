@@ -1,6 +1,6 @@
 import React, { Fragment, useState, useEffect } from "react";
 import "./App.css";
-import DSNPicker from "./DSNPicker";
+import ConfigPicker from "./ConfigPicker";
 
 import { logger } from "@sentry/browser";
 import * as Sentry from "@sentry/browser";
@@ -124,6 +124,8 @@ function App() {
         {/* <p className="glitch-text" data-text="SENTRY TEST APP">SENTRY TEST APP</p>
         <p className="glitch-text" data-text="ERROR MONITORING SYSTEM">ERROR MONITORING SYSTEM</p> */}
         
+        <ConfigPicker />
+        
         <div className="extra-data-section">
           <div className="input-section">
             <div className="severity-row">
@@ -182,8 +184,6 @@ function App() {
             </div>
           </div>
         </div>
-
-        <DSNPicker />
 
         <p>
           <button onClick={callMethodThatDoesntExist}>CAPTURE ERROR</button>

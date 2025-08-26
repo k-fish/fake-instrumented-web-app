@@ -1,6 +1,35 @@
 :root {
   --logo-stroke-width: 2px;
   --logo-stroke-color: black;
+  
+  /* Spacing variables */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 20px;
+  
+  /* Font sizes */
+  --font-xs: 11px;
+  --font-sm: 12px;
+  --font-md: 14px;
+  --font-lg: 16px;
+  
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  
+  /* Colors */
+  --bg-overlay-light: rgba(255, 255, 255, 0.05);
+  --bg-overlay-medium: rgba(255, 255, 255, 0.1);
+  --bg-overlay-dark: rgba(0, 0, 0, 0.2);
+  --border-light: rgba(255, 255, 255, 0.1);
+  --border-medium: rgba(255, 255, 255, 0.2);
+  --text-primary: white;
+  --text-secondary: rgba(255, 255, 255, 0.8);
+  --text-muted: rgba(255, 255, 255, 0.7);
+  --text-placeholder: rgba(255, 255, 255, 0.5);
 }
 
 .App {
@@ -43,174 +72,174 @@
   pointer-events: none;
 }
 
-/* DSN Picker Accordion Styles */
-.dsn-picker {
-  margin: 20px 0;
+/* Config Picker Accordion Styles */
+.config-picker {
+  margin: var(--spacing-lg) 0;
   position: relative;
   z-index: 1;
 }
 
-.dsn-accordion {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.config-accordion {
+  background: var(--bg-overlay-medium);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-medium);
   overflow: hidden;
 }
 
-.dsn-accordion-header {
-  padding: 15px 20px;
+.config-accordion-header {
+  padding: var(--spacing-md) var(--spacing-lg);
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-overlay-light);
   transition: background-color 0.2s ease;
 }
 
-.dsn-accordion-header:hover {
-  background: rgba(255, 255, 255, 0.1);
+.config-accordion-header:hover {
+  background: var(--bg-overlay-medium);
 }
 
-.dsn-accordion-header h4 {
+.config-accordion-header h4 {
   margin: 0;
-  color: white;
-  font-size: 16px;
+  color: var(--text-primary);
+  font-size: var(--font-md);
 }
 
-.dsn-current {
+.config-current {
   flex: 1;
   text-align: center;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 14px;
-  margin: 0 20px;
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+  margin: 0 var(--spacing-lg);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .accordion-arrow {
-  color: white;
+  color: var(--text-primary);
   transition: transform 0.2s ease;
-  font-size: 12px;
+  font-size: var(--font-xs);
 }
 
 .accordion-arrow.expanded {
   transform: rotate(180deg);
 }
 
-.dsn-accordion-content {
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.2);
+.config-accordion-content {
+  padding: var(--spacing-lg);
+  background: var(--bg-overlay-dark);
 }
 
-.dsn-list {
-  margin-bottom: 20px;
+.config-list {
+  margin-bottom: var(--spacing-lg);
 }
 
-.dsn-entry {
-  margin-bottom: 15px;
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.config-entry {
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-sm);
+  background: var(--bg-overlay-light);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
 }
 
-.dsn-main-row {
+.config-main-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: var(--spacing-xs);
 }
 
-.dsn-radio {
+.config-radio {
   display: flex;
   align-items: center;
   flex: 1;
 }
 
-.dsn-radio input[type="radio"] {
-  margin-right: 8px;
+.config-radio input[type="radio"] {
+  margin-right: var(--spacing-sm);
 }
 
-.dsn-label {
-  color: white;
-  font-size: 14px;
+.config-label {
+  color: var(--text-primary);
+  font-size: var(--font-sm);
   cursor: pointer;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.dsn-actions {
+.config-actions {
   display: flex;
-  gap: 8px;
+  gap: var(--spacing-xs);
 }
 
-.dsn-controls {
+.config-controls {
   display: flex;
   align-items: center;
-  margin-left: 24px;
+  margin-left: calc(var(--spacing-lg) + var(--spacing-sm));
 }
 
-.dsn-controls label {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 12px;
+.config-controls label {
+  color: var(--text-muted);
+  font-size: var(--font-xs);
   display: flex;
   align-items: center;
   cursor: pointer;
 }
 
-.dsn-controls input[type="checkbox"] {
-  margin-right: 6px;
+.config-controls input[type="checkbox"] {
+  margin-right: var(--spacing-xs);
 }
 
-.dsn-form-section {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 20px;
+.config-form-section {
+  border-top: 1px solid var(--border-light);
+  padding-top: var(--spacing-lg);
 }
 
-.dsn-form {
-  background: rgba(255, 255, 255, 0.05);
-  padding: 15px;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.config-form {
+  background: var(--bg-overlay-light);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
 }
 
-.dsn-form h5 {
-  margin: 0 0 15px 0;
-  color: white;
-  font-size: 14px;
+.config-form h5 {
+  margin: 0 0 var(--spacing-md) 0;
+  color: var(--text-primary);
+  font-size: var(--font-sm);
 }
 
-.dsn-form .form-row {
+.config-form .form-row {
   display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
 }
 
-.dsn-form .nickname-input,
-.dsn-form .dsn-input {
+.config-form .nickname-input,
+.config-form .dsn-input {
   flex: 1;
-  padding: 8px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  font-size: 14px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  background: var(--bg-overlay-medium);
+  color: var(--text-primary);
+  font-size: var(--font-sm);
 }
 
-.dsn-form .nickname-input::placeholder,
-.dsn-form .dsn-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+.config-form .nickname-input::placeholder,
+.config-form .dsn-input::placeholder {
+  color: var(--text-placeholder);
 }
 
-.dsn-form .form-buttons {
+.config-form .form-buttons {
   display: flex;
-  gap: 10px;
+  gap: var(--spacing-sm);
   justify-content: flex-end;
 }
 
-.add-dsn-button {
+.add-config-button {
   width: 100%;
 }
 

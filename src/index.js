@@ -40,23 +40,33 @@ const dsnLocalViaProxy = "http://6ffbcc9a36d21d024ee8b2d487c7f0d3@sentry.dev.get
 // const dsnlocal =
 //   "http://6ffbcc9a36d21d024ee8b2d487c7f0d3@sentry.dev.getsentry.net:3001/2";
 
-// Get DSN from localStorage or default to dsnmagikrop
-const getCurrentDsn = () => {
+// Get Sentry config from localStorage or use defaults
+const getCurrentSentryConfig = () => {
+  const storedConfig = localStorage.getItem('currentSentryConfig');
   const storedDsn = localStorage.getItem('currentDsn');
-  return storedDsn || dsnmagikrop;
+  
+  if (storedConfig) {
+    try {
+      return JSON.parse(storedConfig);
+    } catch (error) {
+      console.warn('Failed to parse stored Sentry config, using DSN fallback');
+    }
+  }
+  
+  // Fallback to DSN-only config
+  const dsn = storedDsn || dsnmagikrop;
+  return {
+    dsn: dsn,
+    Integrations: SENTRY_INTEGRATIONS,
+    tracesSampleRate: 1.0,
+    tracePropagationTargets: ["localhost", /^https:\/\/yourserver\.io\/api/],
+    enableLogs: true,
+  };
 };
 
-const dsn = getCurrentDsn();
+const sentryConfig = getCurrentSentryConfig();
 
-Sentry.init({
-  dsn: dsn,
-  Integrations: SENTRY_INTEGRATIONS,
-  // Tracing
-  tracesSampleRate: 1.0, //  Capture 100% of the transactions
-  // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
-  tracePropagationTargets: ["localhost", /^https:\/\/yourserver\.io\/api/],
-  enableLogs: true,
-});
+Sentry.init(sentryConfig);
 
 // Set device context via setContext
 Sentry.setContext("device", {
