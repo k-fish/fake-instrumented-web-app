@@ -40,7 +40,13 @@ const dsnLocalViaProxy = "http://6ffbcc9a36d21d024ee8b2d487c7f0d3@sentry.dev.get
 // const dsnlocal =
 //   "http://6ffbcc9a36d21d024ee8b2d487c7f0d3@sentry.dev.getsentry.net:3001/2";
 
-const dsn = dsnmagikrop;
+// Get DSN from localStorage or default to dsnmagikrop
+const getCurrentDsn = () => {
+  const storedDsn = localStorage.getItem('currentDsn');
+  return storedDsn || dsnmagikrop;
+};
+
+const dsn = getCurrentDsn();
 
 Sentry.init({
   dsn: dsn,

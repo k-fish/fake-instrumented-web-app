@@ -1,5 +1,6 @@
 import React, { Fragment, useState, useEffect } from "react";
 import "./App.css";
+import DSNPicker from "./DSNPicker";
 
 import { logger } from "@sentry/browser";
 import * as Sentry from "@sentry/browser";
@@ -181,6 +182,8 @@ function App() {
             </div>
           </div>
         </div>
+
+        <DSNPicker />
 
         <p>
           <button onClick={callMethodThatDoesntExist}>CAPTURE ERROR</button>

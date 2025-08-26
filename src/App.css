@@ -43,6 +43,177 @@
   pointer-events: none;
 }
 
+/* DSN Picker Accordion Styles */
+.dsn-picker {
+  margin: 20px 0;
+  position: relative;
+  z-index: 1;
+}
+
+.dsn-accordion {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.dsn-accordion-header {
+  padding: 15px 20px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  transition: background-color 0.2s ease;
+}
+
+.dsn-accordion-header:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dsn-accordion-header h4 {
+  margin: 0;
+  color: white;
+  font-size: 16px;
+}
+
+.dsn-current {
+  flex: 1;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  margin: 0 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.accordion-arrow {
+  color: white;
+  transition: transform 0.2s ease;
+  font-size: 12px;
+}
+
+.accordion-arrow.expanded {
+  transform: rotate(180deg);
+}
+
+.dsn-accordion-content {
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.dsn-list {
+  margin-bottom: 20px;
+}
+
+.dsn-entry {
+  margin-bottom: 15px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dsn-main-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.dsn-radio {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.dsn-radio input[type="radio"] {
+  margin-right: 8px;
+}
+
+.dsn-label {
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dsn-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.dsn-controls {
+  display: flex;
+  align-items: center;
+  margin-left: 24px;
+}
+
+.dsn-controls label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.dsn-controls input[type="checkbox"] {
+  margin-right: 6px;
+}
+
+.dsn-form-section {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 20px;
+}
+
+.dsn-form {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dsn-form h5 {
+  margin: 0 0 15px 0;
+  color: white;
+  font-size: 14px;
+}
+
+.dsn-form .form-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.dsn-form .nickname-input,
+.dsn-form .dsn-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 14px;
+}
+
+.dsn-form .nickname-input::placeholder,
+.dsn-form .dsn-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.dsn-form .form-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.add-dsn-button {
+  width: 100%;
+}
+
 @keyframes diagonal-drift {
   0% { transform: translate(0, 0); }
   100% { transform: translate(240px, 240px); }
