@@ -11,6 +11,44 @@ amount=199.99 | retryCount=2 | errorCode="PAYMENT_TIMEOUT" | timestamp="2024-11-
 Request failed after 3 seconds, network timeout at /payments/process endpoint, initiated by user action. |
 correlationId=1234567890`;
 
+const jsonAttribute = {
+  payment: {
+    gateway: {
+      name: "Stripe",
+      id: "stripe_1234567890"
+    },
+    method: {
+      name: "Credit Card",
+      id: "card_1234567890"
+    },
+    amount: 199.99,
+    timestamp: "2024-11-15T14:32:07Z"
+  },
+  user_type: "premium",
+  cart: [
+      {
+        name: "Xbox One X 500 GB 2018",
+        price: 199.99,
+        quantity: 1
+      }
+  ]
+}
+
+const piiAttributes ={
+  user: {
+    name: "John Doe",
+    email: "john.doe@example.com",
+    phone: "1234567890"
+  },
+  payment: {
+    card: {
+      number: "4111111111111111",
+      expiration: "12/2025",
+      cvv: "123"
+    }
+  }
+}
+
 /* eslint-disable no-undef */
 function App() {
   const [extraData, setExtraData] = useState(() => {
@@ -45,6 +83,8 @@ function App() {
       }
     });
 
+    attributes["this_is_json"] = jsonAttribute;
+
     const logPayload = {
       user,
       payInfo,
@@ -56,7 +96,33 @@ function App() {
 
     // Use the selected severity level
     const logFunction = logger[logSeverity] || logger.info;
-    logFunction(fmt`${logSeverity}: ${fullText} query:${query} ip:${ip} card:${card}`, logPayload);
+
+    const randomEndpointWords = ['cart', 'payments', 'auth', 'checkout', 'login', 'logout', 'register', 'profile', 'settings', 'help', 'support', 'contact'];
+    const randomEndpointIndex = Math.floor(Math.random() * 5);
+
+    let formatted;
+    switch (randomEndpointIndex) {
+      case 0:
+        formatted = fmt`Auth endpoint: /cart/auth ip:${ip} card:${card}`;
+        break;
+      case 1:
+        formatted = fmt`Auth endpoint: /payments/auth ip:${ip} card:${card}`;
+        break;
+      case 2:
+        formatted = fmt`Auth endpoint: /checkout/auth ip:${ip} card:${card}`;
+        break;
+      case 3:
+        formatted = fmt`Auth endpoint: /login/auth ip:${ip} card:${card}`;
+        break;
+      case 4:
+        formatted = fmt`Auth endpoint: /logout/auth ip:${ip} card:${card}`;
+        break;
+      default:
+        formatted = fmt`Auth endpoint: /register/auth ip:${ip} card:${card}`;
+    }
+
+
+    logFunction(formatted, logPayload);
 
     // Immediate flush
     Sentry.flush(100).then(() => {

@@ -47,7 +47,14 @@ const getCurrentSentryConfig = () => {
   
   if (storedConfig) {
     try {
-      return JSON.parse(storedConfig);
+      const dsn = JSON.parse(storedConfig).dsn;
+      return {
+        dsn: dsn,
+        Integrations: SENTRY_INTEGRATIONS,
+        tracesSampleRate: 1.0,
+        tracePropagationTargets: ["localhost", /^https:\/\/yourserver\.io\/api/],
+        enableLogs: true,
+      };
     } catch (error) {
       console.warn('Failed to parse stored Sentry config, using DSN fallback');
     }
