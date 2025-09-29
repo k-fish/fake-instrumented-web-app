@@ -11,16 +11,16 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "@vitejs/plugin-react": "^4.3.3",
-    "vite": "^6.0.1",
-    "oxlint": "^0.15.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
     "@testing-library/user-event": "^14.6.1",
-    "vitest": "^2.1.8",
-    "jsdom": "^25.0.1"
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.3",
+    "jsdom": "^25.0.1",
+    "oxlint": "^0.15.0",
+    "vite": "^6.0.1",
+    "vitest": "^2.1.8"
   },
   "scripts": {
     "dev": "vite",
@@ -29,5 +29,9 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "lint": "oxlint"
+  },
+  "resolutions": {
+    "@sentry/browser": "portal:/Users/user/repos/sentry-javascript/packages/browser",
+    "@sentry/core": "portal:/Users/user/repos/sentry-javascript/packages/core"
   }
 }

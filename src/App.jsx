@@ -68,10 +68,22 @@ function App() {
   const [fullText, setFullText] = useState(longBody);
   
   // Metrics-specific state
-  const [metricName, setMetricName] = useState('');
-  const [metricType, setMetricType] = useState('count');
-  const [metricValue, setMetricValue] = useState('');
-  const [metricUnit, setMetricUnit] = useState('');
+  const [metricName, setMetricName] = useState(() => {
+    const saved = localStorage.getItem('metricName');
+    return saved || '';
+  });
+  const [metricType, setMetricType] = useState(() => {
+    const saved = localStorage.getItem('metricType');
+    return saved || 'count';
+  });
+  const [metricValue, setMetricValue] = useState(() => {
+    const saved = localStorage.getItem('metricValue');
+    return saved || '';
+  });
+  const [metricUnit, setMetricUnit] = useState(() => {
+    const saved = localStorage.getItem('metricUnit');
+    return saved || '';
+  });
   const [metricNameHistory, setMetricNameHistory] = useState(() => {
     const saved = localStorage.getItem('metricNameHistory');
     return saved ? JSON.parse(saved) : [];
@@ -89,6 +101,22 @@ function App() {
   useEffect(() => {
     localStorage.setItem('metricNameHistory', JSON.stringify(metricNameHistory));
   }, [metricNameHistory]);
+  
+  useEffect(() => {
+    localStorage.setItem('metricName', metricName);
+  }, [metricName]);
+  
+  useEffect(() => {
+    localStorage.setItem('metricType', metricType);
+  }, [metricType]);
+  
+  useEffect(() => {
+    localStorage.setItem('metricValue', metricValue);
+  }, [metricValue]);
+  
+  useEffect(() => {
+    localStorage.setItem('metricUnit', metricUnit);
+  }, [metricUnit]);
 
   function callMethodThatDoesntExist() {
     const methodName = "capture";
