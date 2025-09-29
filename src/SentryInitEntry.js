@@ -77,6 +77,7 @@ class SentryInitEntry {
       tracesSampleRate: 1.0,
       tracePropagationTargets: ["localhost", /^https:\/\/yourserver\.io\/api/],
       enableLogs: true,
+      _enableTraceMetrics: true,
     };
     return new SentryInitEntry(defaultConfig, 'Default');
   }

@@ -51,16 +51,44 @@ const piiAttributes ={
 
 /* eslint-disable no-undef */
 function App() {
+  // Shared state for attributes (used by both logs and metrics)
   const [extraData, setExtraData] = useState(() => {
     const saved = localStorage.getItem('extraData');
     return saved ? JSON.parse(saved) : [{ key: "", value: "" }];
   });
+  
+  // Tab management
+  const [activeTab, setActiveTab] = useState(() => {
+    const saved = localStorage.getItem('activeTab');
+    return saved || 'logs';
+  });
+  
+  // Log-specific state
   const [logSeverity, setLogSeverity] = useState('info');
   const [fullText, setFullText] = useState(longBody);
+  
+  // Metrics-specific state
+  const [metricName, setMetricName] = useState('');
+  const [metricType, setMetricType] = useState('count');
+  const [metricValue, setMetricValue] = useState('');
+  const [metricUnit, setMetricUnit] = useState('');
+  const [metricNameHistory, setMetricNameHistory] = useState(() => {
+    const saved = localStorage.getItem('metricNameHistory');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('extraData', JSON.stringify(extraData));
   }, [extraData]);
+  
+  useEffect(() => {
+    localStorage.setItem('activeTab', activeTab);
+  }, [activeTab]);
+  
+  useEffect(() => {
+    localStorage.setItem('metricNameHistory', JSON.stringify(metricNameHistory));
+  }, [metricNameHistory]);
 
   function callMethodThatDoesntExist() {
     const methodName = "capture";
@@ -180,6 +208,149 @@ function App() {
     setExtraData([{ key: "", value: "" }]);
     localStorage.removeItem('extraData');
   }
+  
+  function handleTabChange(tab) {
+    setActiveTab(tab);
+  }
+  
+  function handleMetricNameChange(value) {
+    setMetricName(value);
+    setShowSuggestions(value.length > 0);
+  }
+  
+  function selectMetricNameSuggestion(suggestion) {
+    setMetricName(suggestion);
+    setShowSuggestions(false);
+  }
+  
+  function callMetric() {
+    if (!metricName || !metricValue) return;
+    
+    // Add to history if not already there
+    if (!metricNameHistory.includes(metricName)) {
+      const newHistory = [...metricNameHistory, metricName].slice(-10); // Keep last 10
+      setMetricNameHistory(newHistory);
+    }
+    
+    // Build attributes from extra data
+    const attributes = {};
+    extraData.forEach(({ key, value }) => {
+      if (key.trim() && value.trim()) {
+        attributes[key.trim()] = value.trim();
+      }
+    });
+    
+    try {
+      // Convert value appropriately - sets use string values, others use numeric
+      let processedValue;
+      if (metricType === 'set') {
+        if (!metricValue.trim()) {
+          console.error('Set metric requires a valid identifier');
+          return;
+        }
+        processedValue = metricValue.trim();
+      } else {
+        processedValue = parseFloat(metricValue);
+        if (isNaN(processedValue)) {
+          console.error('Numeric metrics require a valid numeric value');
+          return;
+        }
+      }
+      
+      // Call the appropriate Sentry metrics method
+      if (Sentry.metrics) {
+        switch (metricType) {
+          case 'count':
+            Sentry.metrics.count(metricName, processedValue, attributes);
+            break;
+          case 'gauge':
+            if (metricUnit) {
+              Sentry.metrics.gauge(metricName, processedValue, metricUnit, attributes);
+            } else {
+              Sentry.metrics.gauge(metricName, processedValue, attributes);
+            }
+            break;
+          case 'histogram':
+            if (metricUnit) {
+              Sentry.metrics.histogram(metricName, processedValue, metricUnit, attributes);
+            } else {
+              Sentry.metrics.histogram(metricName, processedValue, attributes);
+            }
+            break;
+          case 'distribution':
+            if (metricUnit) {
+              Sentry.metrics.distribution(metricName, processedValue, metricUnit, attributes);
+            } else {
+              Sentry.metrics.distribution(metricName, processedValue, attributes);
+            }
+            break;
+          case 'set':
+            // For sets, the value should be a string identifier
+            Sentry.metrics.set(metricName, processedValue, attributes);
+            break;
+          default:
+            console.error('Unknown metric type:', metricType);
+            return;
+        }
+        
+        console.log('Metric sent to Sentry:', {
+          name: metricName,
+          type: metricType,
+          value: processedValue,
+          unit: metricUnit,
+          attributes
+        });
+        
+        // Immediate flush
+        Sentry.flush(100).then(() => {
+          console.log('Metric sent to Sentry');
+        });
+        
+      } else {
+        console.warn('Sentry.metrics not available - make sure _enableTraceMetrics is enabled and you are using a compatible SDK version');
+        console.log('Metric would be sent:', {
+          name: metricName,
+          type: metricType,
+          value: processedValue,
+          unit: metricUnit,
+          attributes
+        });
+      }
+      
+    } catch (error) {
+      console.error('Error sending metric:', error);
+    }
+  }
+  
+  function getFilteredSuggestions() {
+    if (!metricName) return [];
+    return metricNameHistory.filter(name => 
+      name.toLowerCase().includes(metricName.toLowerCase()) && name !== metricName
+    );
+  }
+  
+  function getCurrentMetricPayload() {
+    const attributes = {};
+    extraData.forEach(({ key, value }) => {
+      if (key.trim() && value.trim()) {
+        attributes[key.trim()] = value.trim();
+      }
+    });
+    
+    const payload = {
+      name: metricName || 'metric.name',
+      type: metricType,
+      value: metricValue || '0',
+      attributes
+    };
+    
+    // Add unit for types that support it
+    if (metricUnit && ['gauge', 'histogram', 'distribution'].includes(metricType)) {
+      payload.unit = metricUnit;
+    }
+    
+    return payload;
+  }
 
   return (
     <div className="App">
@@ -193,68 +364,213 @@ function App() {
         <ConfigPicker />
         
         <div className="extra-data-section">
-          <div className="input-section">
-            <div className="severity-row">
-              <label htmlFor="severity-select">Log Severity:</label>
-              <select 
-                id="severity-select"
-                value={logSeverity} 
-                onChange={(e) => setLogSeverity(e.target.value)}
-                className="severity-dropdown"
-              >
-                <option value="debug">debug</option>
-                <option value="info">info</option>
-                <option value="warn">warn</option>
-                <option value="error">error</option>
-                <option value="fatal">fatal</option>
-              </select>
-            </div>
+          {/* Tab Navigation */}
+          <div className="tab-navigation">
+            <button 
+              className={`tab-button ${activeTab === 'logs' ? 'active' : ''}`}
+              onClick={() => handleTabChange('logs')}
+            >
+              Logs
+            </button>
+            <button 
+              className={`tab-button ${activeTab === 'metrics' ? 'active' : ''}`}
+              onClick={() => handleTabChange('metrics')}
+            >
+              Metrics
+            </button>
           </div>
-          
-          <div className="data-content">
-            <div className="data-left">
-              <h4>Extra Data</h4>
-              {extraData.map((row, index) => (
-                <div key={index} className="extra-data-row">
-                  <input
-                    type="text"
-                    placeholder="Key"
-                    value={row.key}
-                    onChange={(e) => updateExtraDataRow(index, 'key', e.target.value)}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Value"
-                    value={row.value}
-                    onChange={(e) => updateExtraDataRow(index, 'value', e.target.value)}
-                  />
-                  <button data-button-size="sm" onClick={() => removeExtraDataRow(index)}>Del</button>
-                </div>
-              ))}
-            </div>
-            
-            <div className="vertical-divider"></div>
-            
-            <div className="data-right">
-              <h4>Log Payload Preview</h4>
-              <pre className="json-preview">
-                {JSON.stringify(getCurrentLogPayload(), null, 2)}
-              </pre>
-            </div>
-          </div>
-          
-          <div className="data-footer">
-            <div className="button-row">
-              <button data-button-size="sm" onClick={addExtraDataRow}>Add</button>
-              <button data-button-size="sm" className="clear-button" onClick={clearAllData}>Clear</button>
-            </div>
-          </div>
-        </div>
 
-        <p>
-          <button onClick={callMethodThatDoesntExist}>CAPTURE ERROR</button>
-          <button onClick={callLog}>CAPTURE LOG</button>
-        </p>
+          {/* Tab Content */}
+          {activeTab === 'logs' && (
+            <>
+              <div className="input-section">
+                <div className="severity-row">
+                  <label htmlFor="severity-select">Log Severity:</label>
+                  <select 
+                    id="severity-select"
+                    value={logSeverity} 
+                    onChange={(e) => setLogSeverity(e.target.value)}
+                    className="severity-dropdown"
+                  >
+                    <option value="debug">debug</option>
+                    <option value="info">info</option>
+                    <option value="warn">warn</option>
+                    <option value="error">error</option>
+                    <option value="fatal">fatal</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="data-content">
+                <div className="data-left">
+                  <h4>Attributes</h4>
+                  {extraData.map((row, index) => (
+                    <div key={index} className="extra-data-row">
+                      <input
+                        type="text"
+                        placeholder="Key"
+                        value={row.key}
+                        onChange={(e) => updateExtraDataRow(index, 'key', e.target.value)}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Value"
+                        value={row.value}
+                        onChange={(e) => updateExtraDataRow(index, 'value', e.target.value)}
+                      />
+                      <button data-button-size="sm" onClick={() => removeExtraDataRow(index)}>Del</button>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="vertical-divider"></div>
+                
+                <div className="data-right">
+                  <h4>Log Payload Preview</h4>
+                  <pre className="json-preview">
+                    {JSON.stringify(getCurrentLogPayload(), null, 2)}
+                  </pre>
+                </div>
+              </div>
+              
+              <div className="data-footer">
+                <div className="button-row">
+                  <button data-button-size="sm" onClick={addExtraDataRow}>Add</button>
+                  <button data-button-size="sm" className="clear-button" onClick={clearAllData}>Clear</button>
+                </div>
+              </div>
+
+              <p>
+                <button onClick={callMethodThatDoesntExist}>CAPTURE ERROR</button>
+                <button onClick={callLog}>CAPTURE LOG</button>
+              </p>
+            </>
+          )}
+
+          {activeTab === 'metrics' && (
+            <>
+              <div className="data-content">
+                <div className="data-left">
+                  <h4>Attributes</h4>
+                  {extraData.map((row, index) => (
+                    <div key={index} className="extra-data-row">
+                      <input
+                        type="text"
+                        placeholder="Key"
+                        value={row.key}
+                        onChange={(e) => updateExtraDataRow(index, 'key', e.target.value)}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Value"
+                        value={row.value}
+                        onChange={(e) => updateExtraDataRow(index, 'value', e.target.value)}
+                      />
+                      <button data-button-size="sm" onClick={() => removeExtraDataRow(index)}>Del</button>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="vertical-divider"></div>
+                
+                <div className="data-right">
+                  <h4>Metric Configuration</h4>
+                  <div className="metric-form">
+                    <div className="metric-input-group">
+                      <label>Metric Name:</label>
+                      <div className="metric-name-container">
+                        <input
+                          type="text"
+                          placeholder="Enter metric name"
+                          value={metricName}
+                          onChange={(e) => handleMetricNameChange(e.target.value)}
+                          onFocus={() => setShowSuggestions(metricName.length > 0)}
+                          onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                          className="metric-input"
+                        />
+                        {showSuggestions && getFilteredSuggestions().length > 0 && (
+                          <div className="metric-suggestions">
+                            {getFilteredSuggestions().map((suggestion, index) => (
+                              <div 
+                                key={index}
+                                className="suggestion-item"
+                                onMouseDown={() => selectMetricNameSuggestion(suggestion)}
+                              >
+                                {suggestion}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="metric-input-group">
+                      <label>Metric Type:</label>
+                      <select 
+                        value={metricType} 
+                        onChange={(e) => setMetricType(e.target.value)}
+                        className="metric-select"
+                      >
+                        <option value="count">Count</option>
+                        <option value="gauge">Gauge</option>
+                        <option value="histogram">Histogram</option>
+                        <option value="distribution">Distribution</option>
+                        <option value="set">Set</option>
+                      </select>
+                    </div>
+                    
+                    {['gauge', 'histogram', 'distribution'].includes(metricType) && (
+                      <div className="metric-input-group">
+                        <label>Unit (optional):</label>
+                        <input
+                          type="text"
+                          placeholder="e.g., millisecond, megabyte, percent"
+                          value={metricUnit}
+                          onChange={(e) => setMetricUnit(e.target.value)}
+                          className="metric-input"
+                        />
+                      </div>
+                    )}
+                    
+                    <div className="metric-input-group">
+                      <label>{metricType === 'set' ? 'Identifier:' : 'Value:'}</label>
+                      <input
+                        type={metricType === 'set' ? 'text' : 'number'}
+                        placeholder={metricType === 'set' ? 'Enter unique identifier' : 'Enter numeric value'}
+                        value={metricValue}
+                        onChange={(e) => setMetricValue(e.target.value)}
+                        className="metric-input"
+                      />
+                      {metricType === 'set' && (
+                        <small className="metric-help-text">
+                          For sets, provide a unique string identifier (e.g., user-123, session-abc)
+                        </small>
+                      )}
+                    </div>
+                    
+                    <div className="metric-preview">
+                      <h5>Metric Preview:</h5>
+                      <pre className="json-preview">
+                        {JSON.stringify(getCurrentMetricPayload(), null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="data-footer">
+                <div className="button-row">
+                  <button data-button-size="sm" onClick={addExtraDataRow}>Add</button>
+                  <button data-button-size="sm" className="clear-button" onClick={clearAllData}>Clear</button>
+                </div>
+              </div>
+
+              <p>
+                <button onClick={callMetric}>CAPTURE METRIC</button>
+              </p>
+            </>
+          )}
+        </div>
       </header>
     </div>
   );

@@ -54,6 +54,7 @@ const getCurrentSentryConfig = () => {
         tracesSampleRate: 1.0,
         tracePropagationTargets: ["localhost", /^https:\/\/yourserver\.io\/api/],
         enableLogs: true,
+        _enableTraceMetrics: true,
       };
     } catch (error) {
       console.warn('Failed to parse stored Sentry config, using DSN fallback');
@@ -68,6 +69,7 @@ const getCurrentSentryConfig = () => {
     tracesSampleRate: 1.0,
     tracePropagationTargets: ["localhost", /^https:\/\/yourserver\.io\/api/],
     enableLogs: true,
+    _enableTraceMetrics: true,
   };
 };
 

@@ -937,3 +937,216 @@ button[data-button-size="sm"]:hover {
 button[data-button-size="sm"]:active {
   box-shadow: none !important;
 }
+
+/* Tab Navigation Styles */
+.tab-navigation {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--border-medium);
+  gap: 0;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 12px 20px;
+  background: var(--bg-overlay-light);
+  border: 2px solid var(--border-medium);
+  border-bottom: none;
+  color: var(--text-secondary);
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  font-size: 14px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  border-radius: 8px 8px 0 0;
+  margin: 0;
+  box-shadow: none;
+}
+
+.tab-button:first-child {
+  border-right: 1px solid var(--border-medium);
+}
+
+.tab-button:last-child {
+  border-left: 1px solid var(--border-medium);
+}
+
+.tab-button:hover {
+  background: var(--bg-overlay-medium);
+  color: var(--text-primary);
+  transform: none;
+  box-shadow: none;
+}
+
+.tab-button.active {
+  background: var(--sentry-purple);
+  color: var(--text-primary);
+  border-color: var(--sentry-purple);
+  box-shadow: 0 0 10px rgba(171, 71, 188, 0.3);
+  transform: none;
+}
+
+.tab-button.active:hover {
+  background: var(--sentry-purple);
+  transform: none;
+  box-shadow: 0 0 15px rgba(171, 71, 188, 0.4);
+}
+
+.tab-button::before {
+  display: none;
+}
+
+.tab-button:active {
+  transform: none;
+  box-shadow: none;
+}
+
+.tab-button.active:active {
+  transform: none;
+  box-shadow: 0 0 10px rgba(171, 71, 188, 0.3);
+}
+
+/* Metrics Form Styles */
+.metric-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.metric-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.metric-input-group label {
+  color: var(--text-primary);
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.metric-input,
+.metric-select {
+  padding: 10px 14px;
+  background: linear-gradient(135deg, var(--sentry-gray-dark) 0%, var(--sentry-black) 100%);
+  border: 2px solid var(--border-light);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.metric-input:focus,
+.metric-select:focus {
+  outline: none;
+  border-color: var(--sentry-purple);
+  background: linear-gradient(135deg, var(--sentry-gray-dark) 0%, var(--sentry-purple) 5%, var(--sentry-black) 100%);
+  box-shadow: 0 0 8px rgba(171, 71, 188, 0.3);
+}
+
+.metric-input::placeholder {
+  color: var(--text-placeholder);
+  font-style: italic;
+}
+
+/* Metric Name Container and Suggestions */
+.metric-name-container {
+  position: relative;
+}
+
+.metric-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-overlay-dark);
+  border: 2px solid var(--border-medium);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  max-height: 150px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.suggestion-item {
+  padding: 8px 14px;
+  color: var(--text-secondary);
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:hover {
+  background: var(--bg-overlay-medium);
+  color: var(--text-primary);
+}
+
+/* Metric Preview */
+.metric-preview {
+  margin-top: 10px;
+  padding-top: 15px;
+  border-top: 1px solid var(--border-light);
+}
+
+.metric-preview h5 {
+  margin: 0 0 10px 0;
+  color: var(--text-primary);
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.metric-preview .json-preview {
+  max-height: 200px;
+  font-size: 12px;
+}
+
+/* Metric suggestions scrollbar */
+.metric-suggestions::-webkit-scrollbar {
+  width: 6px;
+}
+
+.metric-suggestions::-webkit-scrollbar-track {
+  background: var(--sentry-black);
+  border-radius: 3px;
+}
+
+.metric-suggestions::-webkit-scrollbar-thumb {
+  background: var(--sentry-purple);
+  border-radius: 3px;
+  border: 1px solid var(--sentry-black);
+}
+
+.metric-suggestions::-webkit-scrollbar-thumb:hover {
+  background: var(--sentry-red);
+}
+
+.metric-suggestions {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sentry-purple) var(--sentry-black);
+}
+
+/* Metric help text */
+.metric-help-text {
+  color: var(--text-muted);
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  font-style: italic;
+  margin-top: 4px;
+  display: block;
+  line-height: 1.3;
+}
