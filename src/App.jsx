@@ -269,52 +269,28 @@ function App() {
     });
     
     try {
-      // Convert value appropriately - sets use string values, others use numeric
-      let processedValue;
-      if (metricType === 'set') {
-        if (!metricValue.trim()) {
-          console.error('Set metric requires a valid identifier');
-          return;
-        }
-        processedValue = metricValue.trim();
-      } else {
-        processedValue = parseFloat(metricValue);
-        if (isNaN(processedValue)) {
-          console.error('Numeric metrics require a valid numeric value');
-          return;
-        }
+      const processedValue = parseFloat(metricValue);
+      if (isNaN(processedValue)) {
+        console.error('Metrics require a valid numeric value');
+        return;
       }
       
       // Call the appropriate Sentry metrics method
       if (Sentry.metrics) {
+        const options = { attributes };
+        if (metricUnit) {
+          options.unit = metricUnit;
+        }
+        
         switch (metricType) {
           case 'count':
-            Sentry.metrics.count(metricName, processedValue, attributes);
+            Sentry.metrics.count(metricName, processedValue, options);
             break;
           case 'gauge':
-            if (metricUnit) {
-              Sentry.metrics.gauge(metricName, processedValue, metricUnit, attributes);
-            } else {
-              Sentry.metrics.gauge(metricName, processedValue, attributes);
-            }
-            break;
-          case 'histogram':
-            if (metricUnit) {
-              Sentry.metrics.histogram(metricName, processedValue, metricUnit, attributes);
-            } else {
-              Sentry.metrics.histogram(metricName, processedValue, attributes);
-            }
+            Sentry.metrics.gauge(metricName, processedValue, options);
             break;
           case 'distribution':
-            if (metricUnit) {
-              Sentry.metrics.distribution(metricName, processedValue, metricUnit, attributes);
-            } else {
-              Sentry.metrics.distribution(metricName, processedValue, attributes);
-            }
-            break;
-          case 'set':
-            // For sets, the value should be a string identifier
-            Sentry.metrics.set(metricName, processedValue, attributes);
+            Sentry.metrics.distribution(metricName, processedValue, options);
             break;
           default:
             console.error('Unknown metric type:', metricType);
@@ -325,7 +301,6 @@ function App() {
           name: metricName,
           type: metricType,
           value: processedValue,
-          unit: metricUnit,
           attributes
         });
         
@@ -340,7 +315,6 @@ function App() {
           name: metricName,
           type: metricType,
           value: processedValue,
-          unit: metricUnit,
           attributes
         });
       }
@@ -372,8 +346,7 @@ function App() {
       attributes
     };
     
-    // Add unit for types that support it
-    if (metricUnit && ['gauge', 'histogram', 'distribution'].includes(metricType)) {
+    if (metricUnit) {
       payload.unit = metricUnit;
     }
     
@@ -541,39 +514,30 @@ function App() {
                       >
                         <option value="count">Count</option>
                         <option value="gauge">Gauge</option>
-                        <option value="histogram">Histogram</option>
                         <option value="distribution">Distribution</option>
-                        <option value="set">Set</option>
                       </select>
                     </div>
                     
-                    {['gauge', 'histogram', 'distribution'].includes(metricType) && (
-                      <div className="metric-input-group">
-                        <label>Unit (optional):</label>
-                        <input
-                          type="text"
-                          placeholder="e.g., millisecond, megabyte, percent"
-                          value={metricUnit}
-                          onChange={(e) => setMetricUnit(e.target.value)}
-                          className="metric-input"
-                        />
-                      </div>
-                    )}
-                    
                     <div className="metric-input-group">
-                      <label>{metricType === 'set' ? 'Identifier:' : 'Value:'}</label>
+                      <label>Value:</label>
                       <input
-                        type={metricType === 'set' ? 'text' : 'number'}
-                        placeholder={metricType === 'set' ? 'Enter unique identifier' : 'Enter numeric value'}
+                        type="number"
+                        placeholder="Enter numeric value"
                         value={metricValue}
                         onChange={(e) => setMetricValue(e.target.value)}
                         className="metric-input"
                       />
-                      {metricType === 'set' && (
-                        <small className="metric-help-text">
-                          For sets, provide a unique string identifier (e.g., user-123, session-abc)
-                        </small>
-                      )}
+                    </div>
+                    
+                    <div className="metric-input-group">
+                      <label>Unit (optional):</label>
+                      <input
+                        type="text"
+                        placeholder="e.g., millisecond, megabyte, percent"
+                        value={metricUnit}
+                        onChange={(e) => setMetricUnit(e.target.value)}
+                        className="metric-input"
+                      />
                     </div>
                     
                     <div className="metric-preview">
