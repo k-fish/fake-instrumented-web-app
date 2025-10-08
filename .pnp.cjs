@@ -1225,42 +1225,42 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["@sentry-internal/browser-utils", [\
-        ["npm:10.15.0", {\
-          "packageLocation": "./.yarn/cache/@sentry-internal-browser-utils-npm-10.15.0-1547cf6573-b8bece6be1.zip/node_modules/@sentry-internal/browser-utils/",\
+        ["npm:10.18.0", {\
+          "packageLocation": "./.yarn/cache/@sentry-internal-browser-utils-npm-10.18.0-196d5c640d-9b61d851e2.zip/node_modules/@sentry-internal/browser-utils/",\
           "packageDependencies": [\
-            ["@sentry-internal/browser-utils", "npm:10.15.0"],\
+            ["@sentry-internal/browser-utils", "npm:10.18.0"],\
             ["@sentry/core", "portal:/Users/user/repos/sentry-javascript/packages/core::locator=fake-instrumented-web-app%40workspace%3A."]\
           ],\
           "linkType": "HARD"\
         }]\
       ]],\
       ["@sentry-internal/feedback", [\
-        ["npm:10.15.0", {\
-          "packageLocation": "./.yarn/cache/@sentry-internal-feedback-npm-10.15.0-4cdc44c17a-0025b65245.zip/node_modules/@sentry-internal/feedback/",\
+        ["npm:10.18.0", {\
+          "packageLocation": "./.yarn/cache/@sentry-internal-feedback-npm-10.18.0-945031ab48-65e9b4a783.zip/node_modules/@sentry-internal/feedback/",\
           "packageDependencies": [\
-            ["@sentry-internal/feedback", "npm:10.15.0"],\
+            ["@sentry-internal/feedback", "npm:10.18.0"],\
             ["@sentry/core", "portal:/Users/user/repos/sentry-javascript/packages/core::locator=fake-instrumented-web-app%40workspace%3A."]\
           ],\
           "linkType": "HARD"\
         }]\
       ]],\
       ["@sentry-internal/replay", [\
-        ["npm:10.15.0", {\
-          "packageLocation": "./.yarn/cache/@sentry-internal-replay-npm-10.15.0-d4eedbf82c-0a02a870fe.zip/node_modules/@sentry-internal/replay/",\
+        ["npm:10.18.0", {\
+          "packageLocation": "./.yarn/cache/@sentry-internal-replay-npm-10.18.0-ac6f96f45e-ad3d6d0189.zip/node_modules/@sentry-internal/replay/",\
           "packageDependencies": [\
-            ["@sentry-internal/replay", "npm:10.15.0"],\
-            ["@sentry-internal/browser-utils", "npm:10.15.0"],\
+            ["@sentry-internal/replay", "npm:10.18.0"],\
+            ["@sentry-internal/browser-utils", "npm:10.18.0"],\
             ["@sentry/core", "portal:/Users/user/repos/sentry-javascript/packages/core::locator=fake-instrumented-web-app%40workspace%3A."]\
           ],\
           "linkType": "HARD"\
         }]\
       ]],\
       ["@sentry-internal/replay-canvas", [\
-        ["npm:10.15.0", {\
-          "packageLocation": "./.yarn/cache/@sentry-internal-replay-canvas-npm-10.15.0-725fe4cdc1-547bcd0365.zip/node_modules/@sentry-internal/replay-canvas/",\
+        ["npm:10.18.0", {\
+          "packageLocation": "./.yarn/cache/@sentry-internal-replay-canvas-npm-10.18.0-587b108341-e55471e9f5.zip/node_modules/@sentry-internal/replay-canvas/",\
           "packageDependencies": [\
-            ["@sentry-internal/replay-canvas", "npm:10.15.0"],\
-            ["@sentry-internal/replay", "npm:10.15.0"],\
+            ["@sentry-internal/replay-canvas", "npm:10.18.0"],\
+            ["@sentry-internal/replay", "npm:10.18.0"],\
             ["@sentry/core", "portal:/Users/user/repos/sentry-javascript/packages/core::locator=fake-instrumented-web-app%40workspace%3A."]\
           ],\
           "linkType": "HARD"\
@@ -1271,10 +1271,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "../sentry-javascript/packages/browser/",\
           "packageDependencies": [\
             ["@sentry/browser", "portal:/Users/user/repos/sentry-javascript/packages/browser::locator=fake-instrumented-web-app%40workspace%3A."],\
-            ["@sentry-internal/browser-utils", "npm:10.15.0"],\
-            ["@sentry-internal/feedback", "npm:10.15.0"],\
-            ["@sentry-internal/replay", "npm:10.15.0"],\
-            ["@sentry-internal/replay-canvas", "npm:10.15.0"],\
+            ["@sentry-internal/browser-utils", "npm:10.18.0"],\
+            ["@sentry-internal/feedback", "npm:10.18.0"],\
+            ["@sentry-internal/replay", "npm:10.18.0"],\
+            ["@sentry-internal/replay-canvas", "npm:10.18.0"],\
             ["@sentry/core", "portal:/Users/user/repos/sentry-javascript/packages/core::locator=fake-instrumented-web-app%40workspace%3A."]\
           ],\
           "linkType": "SOFT"\

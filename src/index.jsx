@@ -54,6 +54,9 @@ const getCurrentSentryConfig = () => {
         tracesSampleRate: 1.0,
         tracePropagationTargets: ["localhost", /^https:\/\/yourserver\.io\/api/],
         enableLogs: true,
+        _experiments: {
+          enableTraceMetrics: true,
+        },
         _enableTraceMetrics: true,
       };
     } catch (error) {
@@ -69,7 +72,10 @@ const getCurrentSentryConfig = () => {
     tracesSampleRate: 1.0,
     tracePropagationTargets: ["localhost", /^https:\/\/yourserver\.io\/api/],
     enableLogs: true,
-    _enableTraceMetrics: true,
+    _experiments: {
+
+      enableTraceMetrics: true,
+    }
   };
 };
 
