@@ -384,10 +384,13 @@ function App() {
       
       const envelopeUrl = `${dsn.protocol}://${dsn.host}/api/${dsn.projectId}/envelope/`;
       
+      const authHeader = `Sentry sentry_version=7, sentry_key=${dsn.publicKey}, sentry_client=sentry.javascript.browser/${Sentry.SDK_VERSION}`;
+      
       const response = await fetch(envelopeUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-sentry-envelope',
+          'X-Sentry-Auth': authHeader,
         },
         body: rawEnvelopePayload,
       });
