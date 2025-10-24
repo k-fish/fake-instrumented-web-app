@@ -1152,23 +1152,8 @@ button[data-button-size="sm"]:active {
 }
 
 /* Raw Envelope Styles */
-.raw-envelope-section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.raw-envelope-section h4 {
-  margin: 0 0 10px 0;
-  color: var(--sentry-white);
-  font-family: 'Courier New', monospace;
-  font-size: 16px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
 .raw-envelope-input {
+  width: 100%;
   padding: 12px 16px;
   background: linear-gradient(135deg, var(--sentry-gray-dark) 0%, var(--sentry-black) 100%);
   border: 2px solid var(--border-light);
@@ -1178,9 +1163,10 @@ button[data-button-size="sm"]:active {
   font-size: 14px;
   line-height: 1.4;
   resize: vertical;
-  min-height: 200px;
+  min-height: 300px;
   overflow-y: auto;
   transition: all 0.3s ease;
+  box-sizing: border-box;
 }
 
 .raw-envelope-input::placeholder {

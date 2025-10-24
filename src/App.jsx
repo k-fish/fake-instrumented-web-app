@@ -363,6 +363,76 @@ function App() {
     return payload;
   }
   
+  function normalizeEnvelopePayload(payload) {
+    const jsonObjects = [];
+    let currentJson = '';
+    let braceCount = 0;
+    let inString = false;
+    let escapeNext = false;
+    
+    for (const char of payload) {
+      if (escapeNext) {
+        currentJson += char;
+        escapeNext = false;
+        continue;
+      }
+      
+      if (char === '\\') {
+        escapeNext = true;
+        currentJson += char;
+        continue;
+      }
+      
+      if (char === '"' && !escapeNext) {
+        inString = !inString;
+      }
+      
+      if (!inString) {
+        if (char === '{') {
+          if (braceCount === 0) {
+            currentJson = '{';
+          } else {
+            currentJson += char;
+          }
+          braceCount++;
+          continue;
+        } else if (char === '}') {
+          braceCount--;
+          currentJson += char;
+          if (braceCount === 0 && currentJson.trim()) {
+            try {
+              const parsed = JSON.parse(currentJson.trim());
+              jsonObjects.push(JSON.stringify(parsed));
+            } catch (e) {
+              console.warn('Failed to parse JSON object, using as-is:', e);
+              jsonObjects.push(currentJson.trim());
+            }
+            currentJson = '';
+          }
+          continue;
+        }
+      }
+      
+      if (braceCount > 0) {
+        currentJson += char;
+      }
+    }
+    
+    return jsonObjects.join('\n');
+  }
+  
+  function getRawEnvelopePreview() {
+    if (!rawEnvelopePayload.trim()) {
+      return '(empty)';
+    }
+    
+    try {
+      return normalizeEnvelopePayload(rawEnvelopePayload);
+    } catch (e) {
+      return 'Error normalizing payload';
+    }
+  }
+  
   async function sendRawEnvelope() {
     if (!rawEnvelopePayload.trim()) {
       console.error('Raw envelope payload is empty');
@@ -384,66 +454,13 @@ function App() {
       
       const envelopeUrl = `${dsn.protocol}://${dsn.host}/api/${dsn.projectId}/envelope/`;
       
-      const jsonObjects = [];
-      let currentJson = '';
-      let braceCount = 0;
-      let inString = false;
-      let escapeNext = false;
-      
-      for (const char of rawEnvelopePayload) {
-        if (escapeNext) {
-          currentJson += char;
-          escapeNext = false;
-          continue;
-        }
-        
-        if (char === '\\') {
-          escapeNext = true;
-          currentJson += char;
-          continue;
-        }
-        
-        if (char === '"' && !escapeNext) {
-          inString = !inString;
-        }
-        
-        if (!inString) {
-          if (char === '{') {
-            if (braceCount === 0) {
-              currentJson = '{';
-            } else {
-              currentJson += char;
-            }
-            braceCount++;
-            continue;
-          } else if (char === '}') {
-            braceCount--;
-            currentJson += char;
-            if (braceCount === 0 && currentJson.trim()) {
-              try {
-                const parsed = JSON.parse(currentJson.trim());
-                jsonObjects.push(JSON.stringify(parsed));
-              } catch (e) {
-                console.warn('Failed to parse JSON object, using as-is:', e);
-                jsonObjects.push(currentJson.trim());
-              }
-              currentJson = '';
-            }
-            continue;
-          }
-        }
-        
-        if (braceCount > 0) {
-          currentJson += char;
-        }
-      }
-      
-      const normalizedPayload = jsonObjects.join('\n');
+      const normalizedPayload = normalizeEnvelopePayload(rawEnvelopePayload);
+      const jsonLines = normalizedPayload.split('\n');
       
       let sentryClient = `sentry.javascript.browser/${Sentry.SDK_VERSION}`;
-      if (jsonObjects.length > 0) {
+      if (jsonLines.length > 0) {
         try {
-          const sdkInfo = JSON.parse(jsonObjects[0]);
+          const sdkInfo = JSON.parse(jsonLines[0]);
           if (sdkInfo.sdk && sdkInfo.sdk.name && sdkInfo.sdk.version) {
             sentryClient = `${sdkInfo.sdk.name}/${sdkInfo.sdk.version}`;
           }
@@ -691,17 +708,28 @@ function App() {
 
           {activeTab === 'raw' && (
             <>
-              <div className="raw-envelope-section">
-                <h4>Raw Envelope Payload</h4>
-                <textarea
-                  className="raw-envelope-input"
-                  placeholder={`{"sdk":{"name":"sentry.javascript.browser","version":"10.19.0"}}
+              <div className="data-content">
+                <div className="data-left">
+                  <h4>Raw Envelope Payload</h4>
+                  <textarea
+                    className="raw-envelope-input"
+                    placeholder={`{"sdk":{"name":"sentry.javascript.browser","version":"10.19.0"}}
 {"type":"trace_metric","item_count":1,"content_type":"application/vnd.sentry.items.trace-metric+json"}
 {"items":[{"timestamp":1761343560.7496,"trace_id":"c6544b95d59f481599f4b65303bf9be5","name":"app.count","type":"counter","value":10,"attributes":{"version":{"value":"58","type":"string"},"some_ip":{"value":"192.168.1.1","type":"string"},"sentry.sdk.name":{"value":"sentry.javascript.browser","type":"string"},"sentry.sdk.version":{"value":"10.19.0","type":"string"}}}]}`}
-                  value={rawEnvelopePayload}
-                  onChange={(e) => setRawEnvelopePayload(e.target.value)}
-                  rows={15}
-                />
+                    value={rawEnvelopePayload}
+                    onChange={(e) => setRawEnvelopePayload(e.target.value)}
+                    rows={15}
+                  />
+                </div>
+                
+                <div className="vertical-divider"></div>
+                
+                <div className="data-right">
+                  <h4>Normalized Payload Preview</h4>
+                  <pre className="json-preview">
+                    {getRawEnvelopePreview()}
+                  </pre>
+                </div>
               </div>
               
               <p>
