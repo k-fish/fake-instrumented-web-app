@@ -384,7 +384,18 @@ function App() {
       
       const envelopeUrl = `${dsn.protocol}://${dsn.host}/api/${dsn.projectId}/envelope/`;
       
-      const authHeader = `Sentry sentry_version=7, sentry_key=${dsn.publicKey}, sentry_client=sentry.javascript.browser/${Sentry.SDK_VERSION}`;
+      let sentryClient = `sentry.javascript.browser/${Sentry.SDK_VERSION}`;
+      try {
+        const firstLine = rawEnvelopePayload.trim().split('\n')[0];
+        const sdkInfo = JSON.parse(firstLine);
+        if (sdkInfo.sdk && sdkInfo.sdk.name && sdkInfo.sdk.version) {
+          sentryClient = `${sdkInfo.sdk.name}/${sdkInfo.sdk.version}`;
+        }
+      } catch (e) {
+        console.warn('Could not parse SDK info from envelope, using default');
+      }
+      
+      const authHeader = `Sentry sentry_version=7, sentry_key=${dsn.publicKey}, sentry_client=${sentryClient}`;
       
       const response = await fetch(envelopeUrl, {
         method: 'POST',
