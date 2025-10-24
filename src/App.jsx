@@ -384,15 +384,72 @@ function App() {
       
       const envelopeUrl = `${dsn.protocol}://${dsn.host}/api/${dsn.projectId}/envelope/`;
       
-      let sentryClient = `sentry.javascript.browser/${Sentry.SDK_VERSION}`;
-      try {
-        const firstLine = rawEnvelopePayload.trim().split('\n')[0];
-        const sdkInfo = JSON.parse(firstLine);
-        if (sdkInfo.sdk && sdkInfo.sdk.name && sdkInfo.sdk.version) {
-          sentryClient = `${sdkInfo.sdk.name}/${sdkInfo.sdk.version}`;
+      const jsonObjects = [];
+      let currentJson = '';
+      let braceCount = 0;
+      let inString = false;
+      let escapeNext = false;
+      
+      for (const char of rawEnvelopePayload) {
+        if (escapeNext) {
+          currentJson += char;
+          escapeNext = false;
+          continue;
         }
-      } catch (e) {
-        console.warn('Could not parse SDK info from envelope, using default');
+        
+        if (char === '\\') {
+          escapeNext = true;
+          currentJson += char;
+          continue;
+        }
+        
+        if (char === '"' && !escapeNext) {
+          inString = !inString;
+        }
+        
+        if (!inString) {
+          if (char === '{') {
+            if (braceCount === 0) {
+              currentJson = '{';
+            } else {
+              currentJson += char;
+            }
+            braceCount++;
+            continue;
+          } else if (char === '}') {
+            braceCount--;
+            currentJson += char;
+            if (braceCount === 0 && currentJson.trim()) {
+              try {
+                const parsed = JSON.parse(currentJson.trim());
+                jsonObjects.push(JSON.stringify(parsed));
+              } catch (e) {
+                console.warn('Failed to parse JSON object, using as-is:', e);
+                jsonObjects.push(currentJson.trim());
+              }
+              currentJson = '';
+            }
+            continue;
+          }
+        }
+        
+        if (braceCount > 0) {
+          currentJson += char;
+        }
+      }
+      
+      const normalizedPayload = jsonObjects.join('\n');
+      
+      let sentryClient = `sentry.javascript.browser/${Sentry.SDK_VERSION}`;
+      if (jsonObjects.length > 0) {
+        try {
+          const sdkInfo = JSON.parse(jsonObjects[0]);
+          if (sdkInfo.sdk && sdkInfo.sdk.name && sdkInfo.sdk.version) {
+            sentryClient = `${sdkInfo.sdk.name}/${sdkInfo.sdk.version}`;
+          }
+        } catch (e) {
+          console.warn('Could not parse SDK info from envelope, using default');
+        }
       }
       
       const authHeader = `Sentry sentry_version=7, sentry_key=${dsn.publicKey}, sentry_client=${sentryClient}`;
@@ -403,7 +460,7 @@ function App() {
           'Content-Type': 'application/x-sentry-envelope',
           'X-Sentry-Auth': authHeader,
         },
-        body: rawEnvelopePayload,
+        body: normalizedPayload,
       });
       
       if (response.ok) {
