@@ -89,6 +89,12 @@ function App() {
     return saved ? JSON.parse(saved) : [];
   });
   const [showSuggestions, setShowSuggestions] = useState(false);
+  
+  // Raw envelope state
+  const [rawEnvelopePayload, setRawEnvelopePayload] = useState(() => {
+    const saved = localStorage.getItem('rawEnvelopePayload');
+    return saved || '';
+  });
 
   useEffect(() => {
     localStorage.setItem('extraData', JSON.stringify(extraData));
@@ -117,6 +123,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem('metricUnit', metricUnit);
   }, [metricUnit]);
+  
+  useEffect(() => {
+    localStorage.setItem('rawEnvelopePayload', rawEnvelopePayload);
+  }, [rawEnvelopePayload]);
 
   function callMethodThatDoesntExist() {
     const methodName = "capture";
@@ -352,6 +362,45 @@ function App() {
     
     return payload;
   }
+  
+  async function sendRawEnvelope() {
+    if (!rawEnvelopePayload.trim()) {
+      console.error('Raw envelope payload is empty');
+      return;
+    }
+    
+    try {
+      const client = Sentry.getClient();
+      if (!client) {
+        console.error('Sentry client not initialized');
+        return;
+      }
+      
+      const dsn = client.getDsn();
+      if (!dsn) {
+        console.error('No DSN configured');
+        return;
+      }
+      
+      const envelopeUrl = `${dsn.protocol}://${dsn.host}/api/${dsn.projectId}/envelope/`;
+      
+      const response = await fetch(envelopeUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-sentry-envelope',
+        },
+        body: rawEnvelopePayload,
+      });
+      
+      if (response.ok) {
+        console.log('Raw envelope sent successfully');
+      } else {
+        console.error('Failed to send envelope:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error('Error sending raw envelope:', error);
+    }
+  }
 
   return (
     <div className="App">
@@ -378,6 +427,12 @@ function App() {
               onClick={() => handleTabChange('metrics')}
             >
               Metrics
+            </button>
+            <button 
+              className={`tab-button ${activeTab === 'raw' ? 'active' : ''}`}
+              onClick={() => handleTabChange('raw')}
+            >
+              Raw
             </button>
           </div>
 
@@ -559,6 +614,27 @@ function App() {
 
               <p>
                 <button onClick={callMetric}>CAPTURE METRIC</button>
+              </p>
+            </>
+          )}
+
+          {activeTab === 'raw' && (
+            <>
+              <div className="raw-envelope-section">
+                <h4>Raw Envelope Payload</h4>
+                <textarea
+                  className="raw-envelope-input"
+                  placeholder={`{"sdk":{"name":"sentry.javascript.browser","version":"10.19.0"}}
+{"type":"trace_metric","item_count":1,"content_type":"application/vnd.sentry.items.trace-metric+json"}
+{"items":[{"timestamp":1761343560.7496,"trace_id":"c6544b95d59f481599f4b65303bf9be5","name":"app.count","type":"counter","value":10,"attributes":{"version":{"value":"58","type":"string"},"some_ip":{"value":"192.168.1.1","type":"string"},"sentry.sdk.name":{"value":"sentry.javascript.browser","type":"string"},"sentry.sdk.version":{"value":"10.19.0","type":"string"}}}]}`}
+                  value={rawEnvelopePayload}
+                  onChange={(e) => setRawEnvelopePayload(e.target.value)}
+                  rows={15}
+                />
+              </div>
+              
+              <p>
+                <button onClick={sendRawEnvelope}>SEND RAW ENVELOPE</button>
               </p>
             </>
           )}
