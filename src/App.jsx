@@ -49,6 +49,61 @@ const piiAttributes ={
   }
 }
 
+const SPAN_OPS = ['http.client', 'db', 'cache', 'queue.process', 'serialize', 'middleware', 'template.render', 'resource.script'];
+
+const SPAN_DESCRIPTIONS = {
+  'http.client': [
+    'GET https://api.example.com/v2/users/123',
+    'POST https://api.example.com/v2/orders',
+    'GET https://cdn.example.com/assets/main.js',
+    'PUT https://api.example.com/v2/cart/items/456',
+    'DELETE https://api.example.com/v2/sessions/789',
+    'GET https://payments.stripe.com/v1/charges',
+    'POST https://api.example.com/v2/invoices/batch',
+  ],
+  db: [
+    'SELECT * FROM users WHERE id = %s',
+    'INSERT INTO orders (user_id, total) VALUES (%s, %s)',
+    'UPDATE inventory SET quantity = quantity - 1 WHERE product_id = %s',
+    'SELECT o.*, u.email FROM orders o JOIN users u ON o.user_id = u.id',
+    'DELETE FROM sessions WHERE expires_at < NOW()',
+    'SELECT COUNT(*) FROM events WHERE timestamp > %s',
+  ],
+  cache: [
+    'cache.get user:123:profile',
+    'cache.set session:abc123',
+    'cache.delete cart:user:123',
+    'cache.get product:456:details',
+  ],
+  'queue.process': [
+    'queue.publish order.created',
+    'queue.process email.send',
+    'queue.publish payment.processed',
+    'queue.process inventory.update',
+  ],
+  serialize: [
+    'serialize response body',
+    'deserialize request payload',
+    'serialize cache entry',
+  ],
+  middleware: [
+    'AuthenticationMiddleware',
+    'RateLimitMiddleware',
+    'CORSMiddleware',
+    'LoggingMiddleware',
+  ],
+  'template.render': [
+    'render checkout.html',
+    'render invoice.pdf',
+    'render email/confirmation.mjml',
+  ],
+  'resource.script': [
+    'https://cdn.example.com/js/app.bundle.js',
+    'https://cdn.example.com/css/main.css',
+    'https://cdn.example.com/img/logo.png',
+  ],
+};
+
 /* eslint-disable no-undef */
 function App() {
   // Shared state for attributes (used by both logs and metrics)
@@ -95,6 +150,12 @@ function App() {
     const saved = localStorage.getItem('rawEnvelopePayload');
     return saved || '';
   });
+  
+  // Spans state
+  const [spanDuration, setSpanDuration] = useState(() => {
+    const saved = localStorage.getItem('spanDuration');
+    return saved || '100';
+  });
 
   useEffect(() => {
     localStorage.setItem('extraData', JSON.stringify(extraData));
@@ -127,6 +188,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem('rawEnvelopePayload', rawEnvelopePayload);
   }, [rawEnvelopePayload]);
+  
+  useEffect(() => {
+    localStorage.setItem('spanDuration', spanDuration);
+  }, [spanDuration]);
 
   function callMethodThatDoesntExist() {
     const methodName = "capture";
@@ -490,6 +555,78 @@ function App() {
     }
   }
 
+  function generateChildSpans(totalDurationMs) {
+    const count = 3 + Math.floor(Math.random() * 4); // 3-6 children
+    const children = [];
+    const usedOps = new Set();
+    
+    for (let i = 0; i < count; i++) {
+      let op;
+      do {
+        op = SPAN_OPS[Math.floor(Math.random() * SPAN_OPS.length)];
+      } while (usedOps.has(op) && usedOps.size < SPAN_OPS.length);
+      usedOps.add(op);
+      
+      const descriptions = SPAN_DESCRIPTIONS[op];
+      const description = descriptions[Math.floor(Math.random() * descriptions.length)];
+      
+      const maxDuration = Math.min(totalDurationMs * 0.8, totalDurationMs - 1);
+      const duration = Math.max(1, Math.floor(Math.random() * maxDuration));
+      const latestStart = totalDurationMs - duration;
+      const startOffset = Math.floor(Math.random() * latestStart);
+      
+      children.push({ op, description, startOffset, duration });
+    }
+    
+    children.sort((a, b) => a.startOffset - b.startOffset);
+    return children;
+  }
+
+  function callSpan() {
+    const totalDurationMs = parseFloat(spanDuration) || 100;
+    const children = generateChildSpans(totalDurationMs);
+    
+    Sentry.startSpan(
+      { name: 'test-transaction', op: 'navigation' },
+      (rootSpan) => {
+        const rootStart = Date.now();
+        
+        for (const child of children) {
+          const childStartMs = rootStart + child.startOffset;
+          const childEndMs = childStartMs + child.duration;
+          const childSpan = Sentry.startInactiveSpan({
+            name: child.description,
+            op: child.op,
+            startTime: childStartMs / 1000,
+          });
+          childSpan.end(childEndMs / 1000);
+        }
+        
+        // End root span after total duration
+        setTimeout(() => {
+          rootSpan.end();
+          Sentry.flush(100).then(() => {
+            console.log('Span sent to Sentry');
+          });
+        }, totalDurationMs);
+      }
+    );
+  }
+
+  function getSpanPreview() {
+    const totalDurationMs = parseFloat(spanDuration) || 100;
+    const children = generateChildSpans(totalDurationMs);
+    return {
+      rootSpan: { name: 'test-transaction', op: 'navigation', duration_ms: totalDurationMs },
+      children: children.map(c => ({
+        op: c.op,
+        description: c.description,
+        start_offset_ms: c.startOffset,
+        duration_ms: c.duration,
+      })),
+    };
+  }
+
   return (
     <div className="App">
       <header className="App-header">
@@ -515,6 +652,12 @@ function App() {
               onClick={() => handleTabChange('metrics')}
             >
               Metrics
+            </button>
+            <button 
+              className={`tab-button ${activeTab === 'spans' ? 'active' : ''}`}
+              onClick={() => handleTabChange('spans')}
+            >
+              Spans
             </button>
             <button 
               className={`tab-button ${activeTab === 'raw' ? 'active' : ''}`}
@@ -702,6 +845,38 @@ function App() {
 
               <p>
                 <button onClick={callMetric}>CAPTURE METRIC</button>
+              </p>
+            </>
+          )}
+
+          {activeTab === 'spans' && (
+            <>
+              <div className="input-section">
+                <div className="severity-row">
+                  <label htmlFor="span-duration-input">Total Duration (ms):</label>
+                  <input
+                    id="span-duration-input"
+                    type="number"
+                    value={spanDuration}
+                    onChange={(e) => setSpanDuration(e.target.value)}
+                    className="metric-input"
+                    min="1"
+                    style={{ width: '120px' }}
+                  />
+                </div>
+              </div>
+              
+              <div className="data-content">
+                <div className="data-left" style={{ flex: 1 }}>
+                  <h4>Span Preview</h4>
+                  <pre className="json-preview">
+                    {JSON.stringify(getSpanPreview(), null, 2)}
+                  </pre>
+                </div>
+              </div>
+
+              <p>
+                <button onClick={callSpan}>CAPTURE SPAN</button>
               </p>
             </>
           )}
