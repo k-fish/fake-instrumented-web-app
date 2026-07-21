@@ -945,7 +945,6 @@ function App() {
 
               <p>
                 <button onClick={callSpan}>CAPTURE SPAN</button>
-                <button onClick={openInteractive}>INTERACTIVE</button>
               </p>
             </>
           )}
