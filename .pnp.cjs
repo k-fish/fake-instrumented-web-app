@@ -28,8 +28,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         [null, {\
           "packageLocation": "./",\
           "packageDependencies": [\
-            ["@sentry/browser", "portal:/Users/user/repos/sentry-javascript/packages/browser::locator=fake-instrumented-web-app%40workspace%3A."],\
-            ["@sentry/core", "portal:/Users/user/repos/sentry-javascript/packages/core::locator=fake-instrumented-web-app%40workspace%3A."],\
+            ["@sentry/browser", "npm:10.19.0"],\
+            ["@sentry/core", "npm:10.19.0"],\
             ["@testing-library/jest-dom", "npm:6.8.0"],\
             ["@testing-library/react", "virtual:94aae38ea03b4bc6922c8ce30d5a38d69854d32bc4fa332bd7b26cf9af457031918aee2e99e6ef88de8f32850d4a06d1915ef6e708483ddad1c2a54b524023dc#npm:16.3.0"],\
             ["@testing-library/user-event", "virtual:94aae38ea03b4bc6922c8ce30d5a38d69854d32bc4fa332bd7b26cf9af457031918aee2e99e6ef88de8f32850d4a06d1915ef6e708483ddad1c2a54b524023dc#npm:14.6.1"],\
@@ -1225,68 +1225,68 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["@sentry-internal/browser-utils", [\
-        ["npm:10.18.0", {\
-          "packageLocation": "./.yarn/cache/@sentry-internal-browser-utils-npm-10.18.0-196d5c640d-9b61d851e2.zip/node_modules/@sentry-internal/browser-utils/",\
+        ["npm:10.19.0", {\
+          "packageLocation": "./.yarn/cache/@sentry-internal-browser-utils-npm-10.19.0-cd081f448c-f563c96f9e.zip/node_modules/@sentry-internal/browser-utils/",\
           "packageDependencies": [\
-            ["@sentry-internal/browser-utils", "npm:10.18.0"],\
-            ["@sentry/core", "portal:/Users/user/repos/sentry-javascript/packages/core::locator=fake-instrumented-web-app%40workspace%3A."]\
+            ["@sentry-internal/browser-utils", "npm:10.19.0"],\
+            ["@sentry/core", "npm:10.19.0"]\
           ],\
           "linkType": "HARD"\
         }]\
       ]],\
       ["@sentry-internal/feedback", [\
-        ["npm:10.18.0", {\
-          "packageLocation": "./.yarn/cache/@sentry-internal-feedback-npm-10.18.0-945031ab48-65e9b4a783.zip/node_modules/@sentry-internal/feedback/",\
+        ["npm:10.19.0", {\
+          "packageLocation": "./.yarn/cache/@sentry-internal-feedback-npm-10.19.0-41d88e6117-da6bb6fb51.zip/node_modules/@sentry-internal/feedback/",\
           "packageDependencies": [\
-            ["@sentry-internal/feedback", "npm:10.18.0"],\
-            ["@sentry/core", "portal:/Users/user/repos/sentry-javascript/packages/core::locator=fake-instrumented-web-app%40workspace%3A."]\
+            ["@sentry-internal/feedback", "npm:10.19.0"],\
+            ["@sentry/core", "npm:10.19.0"]\
           ],\
           "linkType": "HARD"\
         }]\
       ]],\
       ["@sentry-internal/replay", [\
-        ["npm:10.18.0", {\
-          "packageLocation": "./.yarn/cache/@sentry-internal-replay-npm-10.18.0-ac6f96f45e-ad3d6d0189.zip/node_modules/@sentry-internal/replay/",\
+        ["npm:10.19.0", {\
+          "packageLocation": "./.yarn/cache/@sentry-internal-replay-npm-10.19.0-d48b66a426-235e3268e9.zip/node_modules/@sentry-internal/replay/",\
           "packageDependencies": [\
-            ["@sentry-internal/replay", "npm:10.18.0"],\
-            ["@sentry-internal/browser-utils", "npm:10.18.0"],\
-            ["@sentry/core", "portal:/Users/user/repos/sentry-javascript/packages/core::locator=fake-instrumented-web-app%40workspace%3A."]\
+            ["@sentry-internal/replay", "npm:10.19.0"],\
+            ["@sentry-internal/browser-utils", "npm:10.19.0"],\
+            ["@sentry/core", "npm:10.19.0"]\
           ],\
           "linkType": "HARD"\
         }]\
       ]],\
       ["@sentry-internal/replay-canvas", [\
-        ["npm:10.18.0", {\
-          "packageLocation": "./.yarn/cache/@sentry-internal-replay-canvas-npm-10.18.0-587b108341-e55471e9f5.zip/node_modules/@sentry-internal/replay-canvas/",\
+        ["npm:10.19.0", {\
+          "packageLocation": "./.yarn/cache/@sentry-internal-replay-canvas-npm-10.19.0-3ebc666955-cb2857093a.zip/node_modules/@sentry-internal/replay-canvas/",\
           "packageDependencies": [\
-            ["@sentry-internal/replay-canvas", "npm:10.18.0"],\
-            ["@sentry-internal/replay", "npm:10.18.0"],\
-            ["@sentry/core", "portal:/Users/user/repos/sentry-javascript/packages/core::locator=fake-instrumented-web-app%40workspace%3A."]\
+            ["@sentry-internal/replay-canvas", "npm:10.19.0"],\
+            ["@sentry-internal/replay", "npm:10.19.0"],\
+            ["@sentry/core", "npm:10.19.0"]\
           ],\
           "linkType": "HARD"\
         }]\
       ]],\
       ["@sentry/browser", [\
-        ["portal:/Users/user/repos/sentry-javascript/packages/browser::locator=fake-instrumented-web-app%40workspace%3A.", {\
-          "packageLocation": "../sentry-javascript/packages/browser/",\
+        ["npm:10.19.0", {\
+          "packageLocation": "./.yarn/cache/@sentry-browser-npm-10.19.0-144b4ac27d-856dc2720c.zip/node_modules/@sentry/browser/",\
           "packageDependencies": [\
-            ["@sentry/browser", "portal:/Users/user/repos/sentry-javascript/packages/browser::locator=fake-instrumented-web-app%40workspace%3A."],\
-            ["@sentry-internal/browser-utils", "npm:10.18.0"],\
-            ["@sentry-internal/feedback", "npm:10.18.0"],\
-            ["@sentry-internal/replay", "npm:10.18.0"],\
-            ["@sentry-internal/replay-canvas", "npm:10.18.0"],\
-            ["@sentry/core", "portal:/Users/user/repos/sentry-javascript/packages/core::locator=fake-instrumented-web-app%40workspace%3A."]\
+            ["@sentry/browser", "npm:10.19.0"],\
+            ["@sentry-internal/browser-utils", "npm:10.19.0"],\
+            ["@sentry-internal/feedback", "npm:10.19.0"],\
+            ["@sentry-internal/replay", "npm:10.19.0"],\
+            ["@sentry-internal/replay-canvas", "npm:10.19.0"],\
+            ["@sentry/core", "npm:10.19.0"]\
           ],\
-          "linkType": "SOFT"\
+          "linkType": "HARD"\
         }]\
       ]],\
       ["@sentry/core", [\
-        ["portal:/Users/user/repos/sentry-javascript/packages/core::locator=fake-instrumented-web-app%40workspace%3A.", {\
-          "packageLocation": "../sentry-javascript/packages/core/",\
+        ["npm:10.19.0", {\
+          "packageLocation": "./.yarn/cache/@sentry-core-npm-10.19.0-b2de0c259c-cd4659f6da.zip/node_modules/@sentry/core/",\
           "packageDependencies": [\
-            ["@sentry/core", "portal:/Users/user/repos/sentry-javascript/packages/core::locator=fake-instrumented-web-app%40workspace%3A."]\
+            ["@sentry/core", "npm:10.19.0"]\
           ],\
-          "linkType": "SOFT"\
+          "linkType": "HARD"\
         }]\
       ]],\
       ["@testing-library/jest-dom", [\
@@ -2157,8 +2157,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./",\
           "packageDependencies": [\
             ["fake-instrumented-web-app", "workspace:."],\
-            ["@sentry/browser", "portal:/Users/user/repos/sentry-javascript/packages/browser::locator=fake-instrumented-web-app%40workspace%3A."],\
-            ["@sentry/core", "portal:/Users/user/repos/sentry-javascript/packages/core::locator=fake-instrumented-web-app%40workspace%3A."],\
+            ["@sentry/browser", "npm:10.19.0"],\
+            ["@sentry/core", "npm:10.19.0"],\
             ["@testing-library/jest-dom", "npm:6.8.0"],\
             ["@testing-library/react", "virtual:94aae38ea03b4bc6922c8ce30d5a38d69854d32bc4fa332bd7b26cf9af457031918aee2e99e6ef88de8f32850d4a06d1915ef6e708483ddad1c2a54b524023dc#npm:16.3.0"],\
             ["@testing-library/user-event", "virtual:94aae38ea03b4bc6922c8ce30d5a38d69854d32bc4fa332bd7b26cf9af457031918aee2e99e6ef88de8f32850d4a06d1915ef6e708483ddad1c2a54b524023dc#npm:14.6.1"],\

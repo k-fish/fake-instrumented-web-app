@@ -156,6 +156,15 @@ function App() {
     const saved = localStorage.getItem('spanDuration');
     return saved || '100';
   });
+  
+  // API tab state
+  const [backendDsn, setBackendDsn] = useState('');
+  const [apiResponse, setApiResponse] = useState(null);
+  const [apiLoading, setApiLoading] = useState(false);
+  const [failureRate, setFailureRate] = useState(() => {
+    const saved = localStorage.getItem('failureRate');
+    return saved || '50';
+  });
 
   useEffect(() => {
     localStorage.setItem('extraData', JSON.stringify(extraData));
@@ -192,6 +201,14 @@ function App() {
   useEffect(() => {
     localStorage.setItem('spanDuration', spanDuration);
   }, [spanDuration]);
+  
+  useEffect(() => {
+    if (activeTab === 'api') fetchBackendDsn();
+  }, [activeTab]);
+  
+  useEffect(() => {
+    localStorage.setItem('failureRate', failureRate);
+  }, [failureRate]);
 
   function callMethodThatDoesntExist() {
     const methodName = "capture";
@@ -613,14 +630,49 @@ function App() {
     );
   }
 
-  function openInteractive() {
+  async function fetchBackendDsn() {
+    try {
+      const res = await fetch('/api/dsn');
+      const data = await res.json();
+      setBackendDsn(data.dsn || '');
+    } catch {
+      setBackendDsn('(api unreachable)');
+    }
+  }
+
+  async function syncDsnToBackend() {
     let dsn = '';
     const storedConfig = localStorage.getItem('currentSentryConfig');
     if (storedConfig) {
-      try { dsn = JSON.parse(storedConfig).dsn; } catch(e) { /* noop */ }
+      try { dsn = JSON.parse(storedConfig).dsn; } catch { /* noop */ }
     }
     if (!dsn) dsn = localStorage.getItem('currentDsn') || '';
-    window.open(`/interactive?dsn=${encodeURIComponent(dsn)}`, '_blank');
+    setApiLoading(true);
+    try {
+      const res = await fetch('/api/dsn', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dsn }),
+      });
+      const data = await res.json();
+      setBackendDsn(data.dsn || '');
+      setApiResponse(data);
+    } catch (e) {
+      setApiResponse({ error: e.message });
+    }
+    setApiLoading(false);
+  }
+
+  async function callApiEndpoint(urlPath) {
+    setApiLoading(true);
+    try {
+      const res = await fetch(urlPath);
+      const data = await res.json();
+      setApiResponse({ status: res.status, ...data });
+    } catch (e) {
+      setApiResponse({ error: e.message });
+    }
+    setApiLoading(false);
   }
 
   function getSpanPreview() {
@@ -668,6 +720,12 @@ function App() {
               onClick={() => handleTabChange('spans')}
             >
               Spans
+            </button>
+            <button 
+              className={`tab-button ${activeTab === 'api' ? 'active' : ''}`}
+              onClick={() => handleTabChange('api')}
+            >
+              API
             </button>
             <button 
               className={`tab-button ${activeTab === 'raw' ? 'active' : ''}`}
@@ -889,6 +947,66 @@ function App() {
                 <button onClick={callSpan}>CAPTURE SPAN</button>
                 <button onClick={openInteractive}>INTERACTIVE</button>
               </p>
+            </>
+          )}
+
+          {activeTab === 'api' && (
+            <>
+              <div className="input-section">
+                <div className="severity-row">
+                  <label>Backend DSN:</label>
+                  <span className="backend-dsn-value">
+                    {backendDsn || '(none)'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="api-section">
+                <h4>Endpoints</h4>
+                <div className="api-button-grid">
+                  <button onClick={syncDsnToBackend} disabled={apiLoading}>
+                    SYNC DSN TO BACKEND
+                  </button>
+                  <button onClick={() => callApiEndpoint('/api/users')} disabled={apiLoading}>
+                    GET /api/users
+                  </button>
+                  <button onClick={() => callApiEndpoint('/api/checkout')} disabled={apiLoading}>
+                    GET /api/checkout
+                  </button>
+                  <button onClick={() => callApiEndpoint('/api/search?q=keyboard')} disabled={apiLoading}>
+                    GET /api/search
+                  </button>
+                  <div className="api-endpoint-row">
+                    <button
+                      onClick={() => callApiEndpoint(`/api/this_might_fail?failure_rate=${failureRate}`)}
+                      disabled={apiLoading}
+                      className="might-fail-btn"
+                    >
+                      GET /api/this_might_fail
+                    </button>
+                    <input
+                      type="number"
+                      value={failureRate}
+                      onChange={(e) => setFailureRate(e.target.value)}
+                      min="0"
+                      max="100"
+                      className="metric-input failure-rate-input"
+                    />
+                    <span className="failure-rate-label">% fail</span>
+                  </div>
+                </div>
+              </div>
+
+              {apiResponse && (
+                <div className="data-content" style={{ marginTop: '20px' }}>
+                  <div className="data-left" style={{ flex: 1 }}>
+                    <h4>Last Response {apiLoading && '(loading...)'}</h4>
+                    <pre className="json-preview">
+                      {JSON.stringify(apiResponse, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              )}
             </>
           )}
 

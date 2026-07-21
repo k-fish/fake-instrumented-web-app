@@ -3,8 +3,6 @@ import { createRoot } from "react-dom/client";
 
 import "./index.css";
 import App from "./App.jsx";
-import Interactive from "./Interactive.jsx";
-
 import * as Sentry from "@sentry/browser";
 
 const ADD_RANDOM_TAGS = false;
@@ -77,27 +75,12 @@ const getCurrentSentryConfig = () => {
   };
 };
 
-const isInteractive = window.location.pathname.endsWith('/interactive');
+const sentryConfig = getCurrentSentryConfig();
+Sentry.init(sentryConfig);
 
-if (isInteractive) {
-  const urlParams = new URLSearchParams(window.location.search);
-  const dsn = urlParams.get('dsn');
-  if (dsn) {
-    Sentry.init({
-      dsn,
-      tracesSampleRate: 1.0,
-      enableLogs: true,
-      _experiments: { enableMetrics: true },
-    });
-  }
-} else {
-  const sentryConfig = getCurrentSentryConfig();
-  Sentry.init(sentryConfig);
-
-  Sentry.setContext("device", {
-    uuid: "new-test-uuid",
-  });
-}
+Sentry.setContext("device", {
+  uuid: "new-test-uuid",
+});
 
 const timeout = (wait) => new Promise((resolve) => setTimeout(resolve, wait));
 
@@ -125,23 +108,21 @@ const fakeTracingFunction = async (time, maxJitter = 0) => {
   // transaction.finish(); // Finishing the transaction will send it to Sentry
 };
 
-if (!isInteractive) {
-  fakeTracingFunction(1, 2000);
-  fakeTracingFunction(10, 90);
-  fakeTracingFunction(100);
-  fakeTracingFunction(200);
-  fakeTracingFunction(300);
-  fakeTracingFunction(400);
-  fakeTracingFunction(500);
-  fakeTracingFunction(1000);
-  fakeTracingFunction(1000, 400); // for misery 1200 w/ jitter
-  fakeTracingFunction(1500);
-  fakeTracingFunction(2000);
-  fakeTracingFunction(3000, 7000);
-}
+fakeTracingFunction(1, 2000);
+fakeTracingFunction(10, 90);
+fakeTracingFunction(100);
+fakeTracingFunction(200);
+fakeTracingFunction(300);
+fakeTracingFunction(400);
+fakeTracingFunction(500);
+fakeTracingFunction(1000);
+fakeTracingFunction(1000, 400); // for misery 1200 w/ jitter
+fakeTracingFunction(1500);
+fakeTracingFunction(2000);
+fakeTracingFunction(3000, 7000);
 
 const container = document.getElementById("root");
 const root = createRoot(container);
-root.render(isInteractive ? <Interactive /> : <App />);
+root.render(<App />);
 
 
