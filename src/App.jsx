@@ -613,6 +613,16 @@ function App() {
     );
   }
 
+  function openInteractive() {
+    let dsn = '';
+    const storedConfig = localStorage.getItem('currentSentryConfig');
+    if (storedConfig) {
+      try { dsn = JSON.parse(storedConfig).dsn; } catch(e) { /* noop */ }
+    }
+    if (!dsn) dsn = localStorage.getItem('currentDsn') || '';
+    window.open(`/interactive?dsn=${encodeURIComponent(dsn)}`, '_blank');
+  }
+
   function getSpanPreview() {
     const totalDurationMs = parseFloat(spanDuration) || 100;
     const children = generateChildSpans(totalDurationMs);
@@ -877,6 +887,7 @@ function App() {
 
               <p>
                 <button onClick={callSpan}>CAPTURE SPAN</button>
+                <button onClick={openInteractive}>INTERACTIVE</button>
               </p>
             </>
           )}
