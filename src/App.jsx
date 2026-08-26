@@ -1,6 +1,7 @@
-import React, { Fragment, useState, useEffect } from "react";
+import React, { Fragment, useState, useEffect, useMemo } from "react";
 import "./App.css";
 import ConfigPicker from "./ConfigPicker.jsx";
+import { attributesSize, calculateLogSize, calculateTraceMetricSize, utf8Size, valueSize } from "./relaySize.js";
 
 import { logger } from "@sentry/browser";
 import * as Sentry from "@sentry/browser";
@@ -47,6 +48,92 @@ const piiAttributes ={
       cvv: "123"
     }
   }
+}
+
+const LOG_IP = "31.41.115.122";
+const LOG_CARD = "4111111111111111";
+const LOG_BODY_ESTIMATE = `Auth endpoint: /payments/auth ip:${LOG_IP} card:${LOG_CARD}`;
+
+const ALNUM = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+function randomAlnum(length) {
+  let out = '';
+  for (let i = 0; i < length; i++) {
+    out += ALNUM[Math.floor(Math.random() * ALNUM.length)];
+  }
+  return out;
+}
+
+function buildAttributesFromRows(rows) {
+  const attributes = {};
+  rows.forEach(({ key, value }) => {
+    if (key.trim() && value.trim()) {
+      attributes[key.trim()] = value.trim();
+    }
+  });
+  return attributes;
+}
+
+const DEFAULT_LOG_ATTRIBUTES = {
+  user: 123,
+  payInfo: { payment: { paymentId: 1312, paymentType: "card" } },
+  ip: LOG_IP,
+  card: LOG_CARD,
+  "code.line.number": 115.0,
+  this_is_json: jsonAttribute,
+};
+
+// Keeps the JSON previews readable (and cheap to render) when size mode has
+// filled attributes with kilobytes of random text.
+function summarizeForPreview(attributes) {
+  const summarized = {};
+  Object.entries(attributes).forEach(([key, value]) => {
+    summarized[key] =
+      typeof value === 'string' && value.length > 64
+        ? `${value.slice(0, 32)}… (${value.length} bytes)`
+        : value;
+  });
+  return summarized;
+}
+
+function buildLogAttributes(rows, includeDefaults) {
+  return {
+    ...(includeDefaults ? DEFAULT_LOG_ATTRIBUTES : {}),
+    ...buildAttributesFromRows(rows),
+  };
+}
+
+/**
+ * Builds random alphanumeric key/value rows whose Relay-counted size (the sum
+ * of key and value bytes) is exactly targetBytes. Chunk sizes scale with the
+ * target so a multi-megabyte fill stays at a few dozen rows.
+ */
+function generateSizedAttributeRows(targetBytes) {
+  const rows = [];
+  const usedKeys = new Set();
+  const chunk = Math.max(16, Math.min(65536, Math.ceil(targetBytes / 24)));
+  let remaining = targetBytes;
+
+  while (remaining >= 2) {
+    const keyLen = Math.max(1, Math.min(8 + Math.floor(Math.random() * 5), remaining - 1));
+    let key = randomAlnum(keyLen);
+    while (usedKeys.has(key)) {
+      key = randomAlnum(keyLen);
+    }
+    usedKeys.add(key);
+    remaining -= keyLen;
+
+    let valueLen = Math.min(remaining, chunk + Math.floor(Math.random() * chunk));
+    // a leftover below 2 bytes cannot form another key/value row
+    if (remaining - valueLen < 2) {
+      valueLen = remaining;
+    }
+    remaining -= valueLen;
+
+    rows.push({ key, value: randomAlnum(valueLen) });
+  }
+
+  return rows;
 }
 
 const SPAN_OPS = ['http.client', 'db', 'cache', 'queue.process', 'serialize', 'middleware', 'template.render', 'resource.script'];
@@ -112,6 +199,16 @@ function App() {
     return saved ? JSON.parse(saved) : [{ key: "", value: "" }];
   });
   
+  // Attribute editor mode: 'manual' rows or 'size' (random fill to a byte target)
+  const [attributeMode, setAttributeMode] = useState(() => {
+    const saved = localStorage.getItem('attributeMode');
+    return saved || 'manual';
+  });
+  const [targetByteSize, setTargetByteSize] = useState(() => {
+    const saved = localStorage.getItem('targetByteSize');
+    return saved || '1024';
+  });
+
   // Tab management
   const [activeTab, setActiveTab] = useState(() => {
     const saved = localStorage.getItem('activeTab');
@@ -120,7 +217,16 @@ function App() {
   
   // Log-specific state
   const [logSeverity, setLogSeverity] = useState('info');
-  const [fullText, setFullText] = useState(longBody);
+  const [fullText, setFullText] = useState(() => {
+    const saved = localStorage.getItem('logBody');
+    return saved !== null ? saved : longBody;
+  });
+  const [useTemplateBody, setUseTemplateBody] = useState(() => {
+    return localStorage.getItem('useTemplateBody') !== 'false';
+  });
+  const [useDefaultAttributes, setUseDefaultAttributes] = useState(() => {
+    return localStorage.getItem('useDefaultAttributes') !== 'false';
+  });
   
   // Metrics-specific state
   const [metricName, setMetricName] = useState(() => {
@@ -173,6 +279,26 @@ function App() {
   useEffect(() => {
     localStorage.setItem('activeTab', activeTab);
   }, [activeTab]);
+
+  useEffect(() => {
+    localStorage.setItem('attributeMode', attributeMode);
+  }, [attributeMode]);
+
+  useEffect(() => {
+    localStorage.setItem('targetByteSize', targetByteSize);
+  }, [targetByteSize]);
+
+  useEffect(() => {
+    localStorage.setItem('logBody', fullText);
+  }, [fullText]);
+
+  useEffect(() => {
+    localStorage.setItem('useTemplateBody', String(useTemplateBody));
+  }, [useTemplateBody]);
+
+  useEffect(() => {
+    localStorage.setItem('useDefaultAttributes', String(useDefaultAttributes));
+  }, [useDefaultAttributes]);
   
   useEffect(() => {
     localStorage.setItem('metricNameHistory', JSON.stringify(metricNameHistory));
@@ -210,42 +336,57 @@ function App() {
     localStorage.setItem('failureRate', failureRate);
   }, [failureRate]);
 
+  const logBodyText = useTemplateBody ? LOG_BODY_ESTIMATE : fullText;
+
+  const attributesByteSize = useMemo(
+    () => attributesSize(buildAttributesFromRows(extraData)),
+    [extraData]
+  );
+
+  // Bytes a captured item costs before any user attribute rows are added.
+  const logFixedByteSize = useMemo(
+    () => utf8Size(logBodyText) + (useDefaultAttributes ? attributesSize(DEFAULT_LOG_ATTRIBUTES) : 0),
+    [logBodyText, useDefaultAttributes]
+  );
+
+  const metricFixedByteSize = useMemo(
+    () => utf8Size(metricName) + valueSize(parseFloat(metricValue) || 0),
+    [metricName, metricValue]
+  );
+
+  const logByteSize = useMemo(
+    () => calculateLogSize(logBodyText, buildLogAttributes(extraData, useDefaultAttributes)),
+    [extraData, logBodyText, useDefaultAttributes]
+  );
+
+  const metricByteSize = useMemo(
+    () => calculateTraceMetricSize(metricName, parseFloat(metricValue) || 0, buildAttributesFromRows(extraData)),
+    [extraData, metricName, metricValue]
+  );
+
+  const fixedByteSize = activeTab === 'metrics' ? metricFixedByteSize : logFixedByteSize;
+
   function callMethodThatDoesntExist() {
     const methodName = "capture";
     error("Method doesn't exist", { methodName });
   }
 
   function callLog() {
-    const user = 123;
-    const payInfo = { payment: { paymentId: 1312, paymentType: "card" } };
-    const code = { "code.line.number": 115.0 };
-    const ip = "31.41.115.122";
-    const card = "4111111111111111";
-    const query = "something something 31.41.115.122 " + card;
-    
-    // Build attributes from extra data
-    const attributes = {};
-    extraData.forEach(({ key, value }) => {
-      if (key.trim() && value.trim()) {
-        attributes[key.trim()] = value.trim();
-      }
-    });
-
-    attributes["this_is_json"] = jsonAttribute;
-
-    const logPayload = {
-      user,
-      payInfo,
-      ip,
-      card,
-      ...code,
-      ...attributes,
-    };
+    const ip = LOG_IP;
+    const card = LOG_CARD;
+    const logPayload = buildLogAttributes(extraData, useDefaultAttributes);
 
     // Use the selected severity level
     const logFunction = logger[logSeverity] || logger.info;
 
-    const randomEndpointWords = ['cart', 'payments', 'auth', 'checkout', 'login', 'logout', 'register', 'profile', 'settings', 'help', 'support', 'contact'];
+    if (!useTemplateBody) {
+      logFunction(fullText, logPayload);
+      Sentry.flush(100).then(() => {
+        console.log('Log sent to Sentry');
+      });
+      return;
+    }
+
     const randomEndpointIndex = Math.floor(Math.random() * 5);
 
     let formatted;
@@ -280,30 +421,10 @@ function App() {
 
   // Generate current log payload for preview
   const getCurrentLogPayload = () => {
-    const user = 123;
-    const payInfo = { payment: { paymentId: 1312, paymentType: "card" } };
-    const code = { "code.line.number": 115.0 };
-    const ip = "31.41.115.122";
-    const card = "4111111111111111";
-    const query = "something something 31.41.115.122 " + card;
-    
-    const attributes = {};
-    extraData.forEach(({ key, value }) => {
-      if (key.trim() && value.trim()) {
-        attributes[key.trim()] = value.trim();
-      }
-    });
-
     return {
-      message: `${logSeverity}: ${fullText} query:${query} ip:${ip} card:${card}`,
-      payload: {
-        user,
-        payInfo,
-        ip,
-        card,
-        ...code,
-        attributes,
-      }
+      severity: logSeverity,
+      body: logBodyText,
+      attributes: summarizeForPreview(buildLogAttributes(extraData, useDefaultAttributes)),
     };
   };
 
@@ -327,6 +448,117 @@ function App() {
   function clearAllData() {
     setExtraData([{ key: "", value: "" }]);
     localStorage.removeItem('extraData');
+  }
+
+  function toggleAttributeMode() {
+    setAttributeMode(attributeMode === 'size' ? 'manual' : 'size');
+  }
+
+  // Size mode targets the total item size, so the fixed cost of the body,
+  // metric name/value and default attributes is subtracted from the target.
+  const fillableByteSize = Math.max(0, (parseInt(targetByteSize, 10) || 0) - fixedByteSize);
+
+  function fillAttributesToSize() {
+    if (fillableByteSize < 2) return;
+    setExtraData(generateSizedAttributeRows(fillableByteSize));
+  }
+
+  function renderAttributesEditor() {
+    const target = parseInt(targetByteSize, 10) || 0;
+
+    return (
+      <div className="data-left">
+        <div className="attributes-header">
+          <h4>Attributes</h4>
+          <button
+            data-button-size="sm"
+            className={`mode-toggle-button ${attributeMode === 'size' ? 'active' : ''}`}
+            onClick={toggleAttributeMode}
+          >
+            {attributeMode === 'size' ? 'Manual Mode' : 'Size Mode'}
+          </button>
+        </div>
+
+        {attributeMode === 'size' ? (
+          <div className="size-mode-panel">
+            <div className="size-mode-row">
+              <label htmlFor="target-byte-size">Fill to bytes:</label>
+              <input
+                id="target-byte-size"
+                type="number"
+                min="2"
+                placeholder="1024"
+                value={targetByteSize}
+                onChange={(e) => setTargetByteSize(e.target.value)}
+              />
+              <button data-button-size="sm" onClick={fillAttributesToSize}>Fill</button>
+            </div>
+            <div className="size-mode-summary">
+              <div>
+                {target.toLocaleString()} B total = {fixedByteSize.toLocaleString()} B fixed
+                {' + '}{fillableByteSize.toLocaleString()} B random attributes
+              </div>
+              <div>
+                {extraData.length} row(s) generated, {attributesByteSize.toLocaleString()} attribute bytes
+              </div>
+              {fillableByteSize < 2 && (
+                <div className="size-mode-warning">
+                  target is below the fixed cost — shorten the body or drop the default attributes
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          extraData.map((row, index) => (
+            <div key={index} className="extra-data-row">
+              <input
+                type="text"
+                placeholder="Key"
+                value={row.key}
+                onChange={(e) => updateExtraDataRow(index, 'key', e.target.value)}
+              />
+              <input
+                type="text"
+                placeholder="Value"
+                value={row.value}
+                onChange={(e) => updateExtraDataRow(index, 'value', e.target.value)}
+              />
+              <button data-button-size="sm" onClick={() => removeExtraDataRow(index)}>Del</button>
+            </div>
+          ))
+        )}
+
+        {activeTab === 'logs' && (
+          <div className="default-attributes">
+            <div className="attributes-subheader">
+              <span>Default Attributes</span>
+              <label className="template-toggle">
+                <input
+                  type="checkbox"
+                  checked={useDefaultAttributes}
+                  onChange={(e) => setUseDefaultAttributes(e.target.checked)}
+                />
+                template
+              </label>
+            </div>
+            {Object.entries(DEFAULT_LOG_ATTRIBUTES).map(([key, value]) => (
+              <div key={key} className="extra-data-row default-attribute-row">
+                <input type="text" value={key} disabled readOnly />
+                <input
+                  type="text"
+                  value={typeof value === 'string' ? value : JSON.stringify(value)}
+                  disabled
+                  readOnly
+                />
+                <span className="row-byte-size">
+                  {(utf8Size(key) + valueSize(value)).toLocaleString()} B
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
   }
   
   function handleTabChange(tab) {
@@ -352,13 +584,7 @@ function App() {
       setMetricNameHistory(newHistory);
     }
     
-    // Build attributes from extra data
-    const attributes = {};
-    extraData.forEach(({ key, value }) => {
-      if (key.trim() && value.trim()) {
-        attributes[key.trim()] = value.trim();
-      }
-    });
+    const attributes = buildAttributesFromRows(extraData);
     
     try {
       const processedValue = parseFloat(metricValue);
@@ -424,12 +650,7 @@ function App() {
   }
   
   function getCurrentMetricPayload() {
-    const attributes = {};
-    extraData.forEach(({ key, value }) => {
-      if (key.trim() && value.trim()) {
-        attributes[key.trim()] = value.trim();
-      }
-    });
+    const attributes = summarizeForPreview(buildAttributesFromRows(extraData));
     
     const payload = {
       name: metricName || 'metric.name',
@@ -754,29 +975,33 @@ function App() {
                     <option value="fatal">fatal</option>
                   </select>
                 </div>
+
+                <div className="full-text-section">
+                  <div className="body-header">
+                    <label htmlFor="log-body-input">Log Body:</label>
+                    <label className="template-toggle">
+                      <input
+                        type="checkbox"
+                        checked={useTemplateBody}
+                        onChange={(e) => setUseTemplateBody(e.target.checked)}
+                      />
+                      template
+                    </label>
+                    <span className="row-byte-size">{utf8Size(logBodyText).toLocaleString()} B</span>
+                  </div>
+                  <textarea
+                    id="log-body-input"
+                    className="full-text-area"
+                    value={useTemplateBody ? LOG_BODY_ESTIMATE : fullText}
+                    onChange={(e) => setFullText(e.target.value)}
+                    disabled={useTemplateBody}
+                    placeholder="Log body text"
+                  />
+                </div>
               </div>
               
               <div className="data-content">
-                <div className="data-left">
-                  <h4>Attributes</h4>
-                  {extraData.map((row, index) => (
-                    <div key={index} className="extra-data-row">
-                      <input
-                        type="text"
-                        placeholder="Key"
-                        value={row.key}
-                        onChange={(e) => updateExtraDataRow(index, 'key', e.target.value)}
-                      />
-                      <input
-                        type="text"
-                        placeholder="Value"
-                        value={row.value}
-                        onChange={(e) => updateExtraDataRow(index, 'value', e.target.value)}
-                      />
-                      <button data-button-size="sm" onClick={() => removeExtraDataRow(index)}>Del</button>
-                    </div>
-                  ))}
-                </div>
+                {renderAttributesEditor()}
                 
                 <div className="vertical-divider"></div>
                 
@@ -795,6 +1020,10 @@ function App() {
                 </div>
               </div>
 
+              <div className="byte-size-estimate">
+                estimated byte size: {logByteSize.toLocaleString()} B
+              </div>
+
               <p>
                 <button onClick={callMethodThatDoesntExist}>CAPTURE ERROR</button>
                 <button onClick={callLog}>CAPTURE LOG</button>
@@ -805,26 +1034,7 @@ function App() {
           {activeTab === 'metrics' && (
             <>
               <div className="data-content">
-                <div className="data-left">
-                  <h4>Attributes</h4>
-                  {extraData.map((row, index) => (
-                    <div key={index} className="extra-data-row">
-                      <input
-                        type="text"
-                        placeholder="Key"
-                        value={row.key}
-                        onChange={(e) => updateExtraDataRow(index, 'key', e.target.value)}
-                      />
-                      <input
-                        type="text"
-                        placeholder="Value"
-                        value={row.value}
-                        onChange={(e) => updateExtraDataRow(index, 'value', e.target.value)}
-                      />
-                      <button data-button-size="sm" onClick={() => removeExtraDataRow(index)}>Del</button>
-                    </div>
-                  ))}
-                </div>
+                {renderAttributesEditor()}
                 
                 <div className="vertical-divider"></div>
                 
@@ -909,6 +1119,10 @@ function App() {
                   <button data-button-size="sm" onClick={addExtraDataRow}>Add</button>
                   <button data-button-size="sm" className="clear-button" onClick={clearAllData}>Clear</button>
                 </div>
+              </div>
+
+              <div className="byte-size-estimate">
+                estimated byte size: {metricByteSize.toLocaleString()} B
               </div>
 
               <p>

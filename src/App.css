@@ -938,6 +938,173 @@ button[data-button-size="sm"]:active {
   box-shadow: none !important;
 }
 
+/* Attributes header with mode toggle */
+.attributes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.attributes-header h4 {
+  margin: 0;
+}
+
+.mode-toggle-button {
+  background: var(--sentry-purple) !important;
+  border: 2px solid var(--sentry-black);
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  font-weight: 800;
+  text-transform: uppercase;
+  box-shadow: 3px 3px 0px var(--sentry-black);
+  transition: all 0.1s ease;
+}
+
+.mode-toggle-button.active {
+  background: var(--sentry-cream) !important;
+  color: var(--sentry-black);
+}
+
+.mode-toggle-button:hover {
+  transform: translate(1px, 1px);
+}
+
+/* Size mode (random fill to a byte target) */
+.size-mode-panel {
+  margin-top: 12px;
+}
+
+.size-mode-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.size-mode-row label {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--sentry-white);
+  white-space: nowrap;
+}
+
+.size-mode-row input {
+  flex: 1;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, var(--sentry-gray-dark) 0%, var(--sentry-black) 100%);
+  border: 2px solid transparent;
+  border-radius: 8px;
+  color: var(--sentry-white);
+  font-size: 14px;
+  font-family: 'Courier New', monospace;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.size-mode-row input:focus {
+  outline: none;
+  border-color: var(--sentry-purple);
+}
+
+.size-mode-row button {
+  background: var(--sentry-green) !important;
+  border: 2px solid var(--sentry-black);
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  font-weight: 800;
+  text-transform: uppercase;
+  box-shadow: 3px 3px 0px var(--sentry-black);
+}
+
+.size-mode-summary {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.size-mode-warning {
+  color: var(--sentry-cream);
+}
+
+/* Log body / default attribute "template" checkboxes */
+.body-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.template-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+}
+
+.template-toggle input {
+  accent-color: var(--sentry-purple);
+  cursor: pointer;
+}
+
+.row-byte-size {
+  margin-left: auto;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+}
+
+.full-text-area:disabled,
+.extra-data-row input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.default-attributes {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.attributes-subheader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: var(--sentry-white);
+}
+
+.default-attribute-row .row-byte-size {
+  min-width: 70px;
+  text-align: right;
+}
+
+/* Estimated byte size readout above the capture buttons */
+.byte-size-estimate {
+  margin-top: 15px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+}
+
 /* Tab Navigation Styles */
 .tab-navigation {
   display: flex;
