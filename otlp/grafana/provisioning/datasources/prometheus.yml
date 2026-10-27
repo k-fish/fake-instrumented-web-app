@@ -1,0 +1,17 @@
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      timeInterval: 10s
+      exemplarTraceIdDestinations:
+        # Exemplar trace_id -> local Sentry trace view (org slug "sentry").
+        - name: trace_id
+          url: http://localhost:8000/organizations/sentry/explore/traces/trace/${__value.raw}/
+          urlDisplayLabel: Open in Sentry

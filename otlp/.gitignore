@@ -1,0 +1,3 @@
+app/node_modules
+app/.otlp-config.json
+relay/credentials.json

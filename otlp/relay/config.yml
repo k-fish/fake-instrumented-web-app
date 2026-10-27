@@ -1,0 +1,19 @@
+---
+# Relay run from source on the host (replaces the devservices relay container).
+# Same port/credentials as the container so the Sentry devserver proxy on :8000
+# keeps routing /api/<project_id>/** here unchanged.
+relay:
+  upstream: "http://127.0.0.1:8001/"
+  host: 0.0.0.0
+  port: 7899
+logging:
+  level: INFO
+  enable_backtraces: false
+limits:
+  shutdown_timeout: 0
+processing:
+  enabled: true
+  kafka_config:
+    - { name: "bootstrap.servers", value: "127.0.0.1:9092" }
+    - { name: "message.max.bytes", value: 209715200 }
+  redis: redis://127.0.0.1:6379
