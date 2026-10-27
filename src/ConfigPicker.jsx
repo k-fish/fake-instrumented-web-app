@@ -11,8 +11,46 @@ const ConfigPicker = () => {
   const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
-    loadConfigEntries();
+    if (!applyDsnFromQueryParam()) {
+      loadConfigEntries();
+    }
   }, []);
+
+  // `?dsn=<dsn>[&nickname=<name>]` saves the DSN as a config entry (deduped by
+  // DSN), selects it and reloads without the query params.
+  const applyDsnFromQueryParam = () => {
+    const params = new URLSearchParams(window.location.search);
+    const dsn = params.get('dsn')?.trim();
+    if (!dsn) {
+      return false;
+    }
+
+    const stored = localStorage.getItem('sentryConfigEntries');
+    const entries = stored ? JSON.parse(stored).map(entry => SentryInitEntry.fromJSON(entry)) : [];
+    let entry = entries.find(candidate => candidate.getDsn() === dsn);
+    if (!entry) {
+      let nickname = params.get('nickname')?.trim();
+      if (!nickname) {
+        try {
+          const url = new URL(dsn);
+          nickname = `${url.host}${url.pathname}`;
+        } catch {
+          nickname = 'From URL';
+        }
+      }
+      entry = new SentryInitEntry(dsn, nickname);
+      entries.push(entry);
+      saveConfigEntries(entries);
+    }
+
+    localStorage.setItem('currentDsn', entry.getDsn());
+    localStorage.setItem('currentSentryConfig', JSON.stringify(entry.getInitConfig()));
+    params.delete('dsn');
+    params.delete('nickname');
+    const search = params.toString();
+    window.location.replace(`${window.location.pathname}${search ? `?${search}` : ''}${window.location.hash}`);
+    return true;
+  };
 
   const loadConfigEntries = () => {
     const stored = localStorage.getItem('sentryConfigEntries');

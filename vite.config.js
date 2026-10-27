@@ -10,6 +10,7 @@ export default defineConfig({
     open: true,
     proxy: {
       '/api': 'http://localhost:3001',
+      '/otlp': 'http://localhost:3002',
     },
   },
   build: {

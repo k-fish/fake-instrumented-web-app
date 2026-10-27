@@ -331,6 +331,32 @@ function App() {
   useEffect(() => {
     if (activeTab === 'api') fetchBackendDsn();
   }, [activeTab]);
+
+  // OTel metrics tab state (the producer lives in otlp/app, proxied under /otlp)
+  const [otlpStatus, setOtlpStatus] = useState(null);
+  const [otlpError, setOtlpError] = useState('');
+  const [otlpBusy, setOtlpBusy] = useState(false);
+  const [otlpPrometheusUrl, setOtlpPrometheusUrl] = useState(() => {
+    return localStorage.getItem('otlpPrometheusUrl') || 'http://localhost:9090';
+  });
+  const [otlpRelayUrl, setOtlpRelayUrl] = useState(() => {
+    return localStorage.getItem('otlpRelayUrl') || '';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('otlpPrometheusUrl', otlpPrometheusUrl);
+  }, [otlpPrometheusUrl]);
+
+  useEffect(() => {
+    localStorage.setItem('otlpRelayUrl', otlpRelayUrl);
+  }, [otlpRelayUrl]);
+
+  useEffect(() => {
+    if (activeTab !== 'otlp') return undefined;
+    fetchOtlpStatus();
+    const interval = setInterval(fetchOtlpStatus, 3000);
+    return () => clearInterval(interval);
+  }, [activeTab]);
   
   useEffect(() => {
     localStorage.setItem('failureRate', failureRate);
@@ -896,6 +922,54 @@ function App() {
     setApiLoading(false);
   }
 
+  async function fetchOtlpStatus() {
+    try {
+      const res = await fetch('/otlp/status');
+      setOtlpStatus(await res.json());
+      setOtlpError('');
+    } catch {
+      setOtlpStatus(null);
+      setOtlpError('otlp producer unreachable — run `npm run dev` (starts otlp/app on :3002)');
+    }
+  }
+
+  function getCurrentDsn() {
+    const storedConfig = localStorage.getItem('currentSentryConfig');
+    if (storedConfig) {
+      try {
+        const dsn = JSON.parse(storedConfig).dsn;
+        if (dsn) return dsn;
+      } catch { /* noop */ }
+    }
+    return localStorage.getItem('currentDsn') || '';
+  }
+
+  async function postOtlp(path, body) {
+    setOtlpBusy(true);
+    try {
+      const res = await fetch(path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      setOtlpStatus(data);
+      setOtlpError('');
+    } catch (e) {
+      setOtlpError(e.message);
+    }
+    setOtlpBusy(false);
+  }
+
+  function syncOtlpConfig() {
+    return postOtlp('/otlp/config', {
+      dsn: getCurrentDsn(),
+      relayUrl: otlpRelayUrl.trim(),
+      prometheusUrl: otlpPrometheusUrl.trim(),
+    });
+  }
+
   function getSpanPreview() {
     const totalDurationMs = parseFloat(spanDuration) || 100;
     const children = generateChildSpans(totalDurationMs);
@@ -953,6 +1027,12 @@ function App() {
               onClick={() => handleTabChange('raw')}
             >
               Raw
+            </button>
+            <button 
+              className={`tab-button ${activeTab === 'otlp' ? 'active' : ''}`}
+              onClick={() => handleTabChange('otlp')}
+            >
+              OTel Metrics
             </button>
           </div>
 
@@ -1252,6 +1332,108 @@ function App() {
               <p>
                 <button onClick={sendRawEnvelope}>SEND RAW ENVELOPE</button>
               </p>
+            </>
+          )}
+
+          {activeTab === 'otlp' && (
+            <>
+              <div className="input-section">
+                <div className="severity-row">
+                  <label htmlFor="otlp-prometheus-url">Prometheus URL:</label>
+                  <input
+                    id="otlp-prometheus-url"
+                    type="text"
+                    className="metric-input"
+                    value={otlpPrometheusUrl}
+                    onChange={(e) => setOtlpPrometheusUrl(e.target.value)}
+                    style={{ width: '260px' }}
+                  />
+                  <label htmlFor="otlp-relay-url">Relay URL override:</label>
+                  <input
+                    id="otlp-relay-url"
+                    type="text"
+                    className="metric-input"
+                    placeholder="(derive from DSN host)"
+                    value={otlpRelayUrl}
+                    onChange={(e) => setOtlpRelayUrl(e.target.value)}
+                    style={{ width: '220px' }}
+                  />
+                  <button data-button-size="sm" onClick={syncOtlpConfig} disabled={otlpBusy}>
+                    SYNC DSN + URLS
+                  </button>
+                </div>
+                <div className="severity-row">
+                  <label>Sentry OTLP endpoint:</label>
+                  <span className="backend-dsn-value">
+                    {otlpStatus?.sentry?.metricsUrl || '(no dsn synced)'}
+                  </span>
+                </div>
+                <div className="severity-row">
+                  <label>Prometheus OTLP endpoint:</label>
+                  <span className="backend-dsn-value">
+                    {otlpStatus?.prometheus?.metricsUrl || '(unknown)'}
+                  </span>
+                </div>
+                {otlpError && <div className="size-mode-warning">{otlpError}</div>}
+              </div>
+
+              <div className="api-section">
+                <h4>Live load (bimodal histogram, counter, gauge → Sentry delta + Prometheus cumulative)</h4>
+                <div className="api-button-grid">
+                  <button
+                    onClick={() => postOtlp('/otlp/load/start')}
+                    disabled={otlpBusy || !otlpStatus || otlpStatus.load?.running}
+                  >
+                    START LOAD
+                  </button>
+                  <button
+                    onClick={() => postOtlp('/otlp/load/stop')}
+                    disabled={otlpBusy || !otlpStatus?.load?.running}
+                  >
+                    STOP LOAD
+                  </button>
+                  <button onClick={() => postOtlp('/otlp/fixture')} disabled={otlpBusy || !otlpStatus}>
+                    SEND FIXTURE
+                  </button>
+                </div>
+              </div>
+
+              <div className="data-content" style={{ marginTop: '20px' }}>
+                <div className="data-left">
+                  <h4>Producer status {otlpBusy && '(working...)'}</h4>
+                  <pre className="json-preview">
+                    {JSON.stringify(
+                      otlpStatus ? { load: otlpStatus.load, exports: otlpStatus.exports } : null,
+                      null,
+                      2
+                    )}
+                  </pre>
+                </div>
+
+                <div className="vertical-divider"></div>
+
+                <div className="data-right">
+                  <h4>Last fixture</h4>
+                  <pre className="json-preview">
+                    {JSON.stringify(
+                      otlpStatus?.lastFixture
+                        ? {
+                            sentAt: otlpStatus.lastFixture.sentAt,
+                            sentry: otlpStatus.lastFixture.sentry?.status,
+                            traces: otlpStatus.lastFixture.traces?.status,
+                            prometheus: otlpStatus.lastFixture.prometheus?.map((r) => r.status),
+                            exemplarTraceIds: otlpStatus.lastFixture.exemplars?.map((e) => e.traceId),
+                            expected: otlpStatus.fixture?.expected,
+                          }
+                        : otlpStatus?.fixture?.expected
+                          ? { expected: otlpStatus.fixture.expected }
+                          : null,
+                      null,
+                      2
+                    )}
+                  </pre>
+                </div>
+              </div>
             </>
           )}
         </div>

@@ -25,9 +25,11 @@
     "vitest": "^2.1.8"
   },
   "scripts": {
-    "dev": "concurrently \"vite\" \"node api/server.mjs\"",
+    "dev": "concurrently \"vite\" \"node api/server.mjs\" \"npm --prefix otlp/app start\"",
     "dev:frontend": "vite",
     "dev:api": "node api/server.mjs",
+    "dev:otlp": "npm --prefix otlp/app start",
+    "otlp:fixture": "npm --prefix otlp/app run fixture",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
