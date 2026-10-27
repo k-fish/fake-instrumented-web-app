@@ -1,0 +1,3 @@
+{"sdk":{"name":"sentry.javascript.browser","version":"10.19.0"}}
+{"type":"trace_metric","item_count":1,"content_type":"application/vnd.sentry.items.trace-metric+json"}
+{"items":[{"timestamp":1793120658.984342,"trace_id":"c6544b95d59f481599f4b65303bf9be5","name":"smoke.count","type":"counter","value":10,"attributes":{"source":{"value":"smoke","type":"string"}}}]}
