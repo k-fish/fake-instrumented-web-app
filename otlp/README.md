@@ -24,8 +24,8 @@ The "OTel Metrics" tab in the fake web app (`src/App.jsx`) drives `app/server.mj
 | Thing | Value |
 | --- | --- |
 | relay | `9755ddb159` poc(otlp): ingest OTLP delta metrics + histograms + exemplars as trace metrics |
-| snuba | `465c89d1d` poc(eap): bucket-aware aggregations for OTLP histogram trace metrics |
-| sentry | `4c5611cf6fa` poc(trace-metrics): support OTLP histogram rows + exemplars in Explore metrics |
+| snuba | `465c89d1d` poc(eap): bucket-aware aggregations for OTLP histogram trace metrics, `6b2d2b14e` exemplar-row fix |
+| sentry | `4c5611cf6fa` poc(trace-metrics): support OTLP histogram rows + exemplars in Explore metrics, `69189971012` histogram samples tab shows exemplars only |
 | Sentry org / project | `sentry` / project id `2` (slug `otlp-poc`) |
 | Public key | `0e82f64da02883cd8c307442dbe8cc4f` |
 | DSN | `http://0e82f64da02883cd8c307442dbe8cc4f@localhost:8000/2` |
@@ -184,9 +184,14 @@ Durations are bimodal: 94% uniform in (0, 5], 6% uniform in (2500, 5000] ("cache
 Each record happens inside a span exported to Relay via OTLP traces.
 
 **Exemplars:** the OTel JS SDK (sdk-metrics 2.12) does not emit exemplars — `ExemplarFilter`/
-`ExemplarReservoir` exist in source but no reservoir is wired into the aggregators, and the
-exporter never serializes `exemplars`. Live exemplars therefore only come from the fixture, which
-builds the OTLP payload by hand.
+`ExemplarReservoir` exist in source but no reservoir is wired into the aggregators, and
+`@opentelemetry/otlp-transformer` never serializes `exemplars`. `app/exemplars.mjs` works around
+this: `load.mjs` offers every histogram recording (value + active span) to a small per-series
+reservoir (keeps up to 4 per export interval, biased to the largest value), and
+`ExemplarInjectingExporter` serializes the SDK's `ResourceMetrics` with the stock JSON transformer,
+splices the pending exemplars into the matching histogram data points, and POSTs the JSON to
+Relay / Prometheus. Both exporters (DELTA → Relay, CUMULATIVE → Prometheus) share one reservoir so
+both sides see the same exemplars. `/otlp/status` reports `exemplars.offered/kept`.
 
 ## Fixture (`app/fixture.mjs`)
 
@@ -240,9 +245,11 @@ Full query: `scripts/rows.sql`; run with
 
 ## Live comparison
 
-Screenshots in `screenshots/`: Sentry Explore (p50/p95/p99, all three metrics, samples table with
-Row Kind / Bucket / Bucket Count / Point ID columns, "Exemplars only" toggle, point-id filter chip,
-exemplar → trace view), Grafana dashboard, Prometheus p95, fake-app OTel tab.
+Screenshots in `screenshots/`: Sentry Explore (p50/p95/p99, all three metrics, samples tab showing
+exemplars with trace links — `sentry-samples-exemplars.png` — and its empty state when a histogram has
+none — `sentry-samples-no-exemplars.png`), Grafana dashboard, Prometheus p95, fake-app OTel tab.
+Older screenshots still show the first UI iteration (Row Kind / Point ID columns, "Exemplars only"
+toggle); see FIXES.md "Samples tab = exemplars" for why that was dropped.
 
 Load at 20 req/s from 17:11 UTC. `scripts/compare.py` (`SENTRY_TOKEN=… python3 scripts/compare.py 15 5`) pulls Sentry `events-stats`
 (`interval=Nm`) and Prometheus `query_range` (`step=Nm`, range vectors `[Nm]`) over the same window.
@@ -319,7 +326,8 @@ Not bugs after all (earlier notes were wrong):
 
 - Prometheus 3.x's new `/query` UI has no "show exemplars" toggle (the old `g0.show_exemplars`
   param is ignored); exemplars are only visible via `/api/v1/query_exemplars` or Grafana.
-- No live exemplars from the JS SDK (see above); exemplar paths were exercised only via the fixture.
+- Live exemplars need the custom exporter in `app/exemplars.mjs` (see above); the stock OTel JS
+  exporter sends none.
 - Explicit-bucket percentiles are linear interpolation inside the bucket on both sides; a histogram
   whose tail falls in the (2500,5000] bucket gives p95 ≈ 2917 for both, not the true p95 of the
   underlying uniform tail (~4583 would be p99).

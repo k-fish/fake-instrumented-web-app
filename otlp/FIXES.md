@@ -103,11 +103,41 @@ for 90 minutes). Fix: restart the devserver; `scripts/sentry-devserver.sh` now e
 - Confidence-interval columns for histogram percentiles still use the pre-PoC t-digest expression;
   reliability on histogram percentiles is not meaningful (but no longer crashes).
 - Snuba applies the bucket-aware aggregation to every `sentry.value` aggregation (no proto flag).
-- The OTel JS SDK (sdk-metrics 2.12) emits no exemplars; exemplar paths are exercised only by the
-  fixture.
+- The OTel JS SDK (sdk-metrics 2.12) emits no exemplars; the bench injects them itself
+  (`app/exemplars.mjs`, see README). A real SDK would need reservoir support.
 - Cumulative Sum/Histogram and Summary points are dropped by Relay.
 - Relay project configs: in this devenv the taskworker never picked `build_project_config` up from
   taskbroker; it was run synchronously via `sentry exec` (see README).
+
+## Addendum — samples tab = exemplars, `point_id` is an implementation detail
+
+The first UI iteration (`4c5611cf6fa`) exposed the storage layout in the histogram samples table:
+Row Kind / Bucket / Bucket Count / Point ID columns, an "Exemplars only" switch, and a click on a
+Point ID that filtered the table to every row of that OTLP data point. `69189971012` removes all of
+it. For histograms the tab now always queries `row_kind:exemplar` with the standard sample columns
+(Trace ID / Project / Value / Timestamp), and when there are none it shows the regular "No samples
+found" empty state with one extra sentence explaining that histogram samples come from exemplars,
+linking to `METRICS_EXEMPLARS_DOCS_URL` (`static/app/views/explore/metrics/constants.tsx`, pointing
+at https://docs.sentry.io/product/metrics/ with a TODO until exemplar docs exist).
+
+Why:
+
+- Bucket rows are not samples. A bucket row is `(lower, upper] × count`, a pre-aggregated slice of
+  a point; it has no trace, no span and no single value, so every column the old table added was
+  there to make a non-sample look like one. Exemplars are the only rows that are "a measurement
+  that happened in this trace", which is what the Samples tab means for every other metric type.
+- `point_id` only exists to let Snuba recombine the bucket rows of one OTLP data point (and to tie
+  exemplars to their point). It has no product meaning — the user never sent it, the SDK generated
+  it, and nothing in Sentry besides the aggregation needs it. Surfacing it as a column and a filter
+  invited reading it as a stable identifier, which it is not (Relay mints a new one per point).
+- Filtering by point reproduced one OTLP payload, which is a debugging view, not a product one.
+  The ClickHouse snippets in the README (`scripts/rows.sql`) cover that need for the PoC.
+- Keeping the Samples tab identical across counter/gauge/distribution/histogram means the UI never
+  has to explain what an exemplar is; the only place the word appears is the empty state.
+
+`row_kind`, `point_id`, `bucket.*` remain searchable attributes on the backend (unchanged in
+`src/sentry/search/eap/trace_metrics/attributes.py`), so the data is still reachable from the query
+bar if someone needs it; it just isn't a column.
 
 ## The proper way to build and run this
 
