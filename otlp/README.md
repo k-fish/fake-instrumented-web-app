@@ -15,7 +15,7 @@ Everything in this folder is PoC tooling. No PRs are opened from it.
 | `grafana/` | Provisioned Prometheus datasource (exemplar trace links → local Sentry trace view) and the `otlp-poc` dashboard |
 | `relay/config.yml` | Config for running Relay from source on the host, same port/credentials as the devservices container |
 | `screenshots/` | Captures from the live comparison |
-| `scripts/` | `mkproject.py`/`mktoken.py` (run via `sentry exec`), `build_config.py`, `compare.py`, `sq.sh`, `rows.sql`, `rpc_repro.py`, `smoke.envelope` |
+| `scripts/` | `sentry-devserver.sh`, `snuba-devserver.sh`, `mkproject.py`/`mktoken.py` (run via `sentry exec`), `build_config.py`, `compare.py`, `sq.sh`, `rows.sql`, `rpc_repro.py`, `smoke.envelope` |
 
 The "OTel Metrics" tab in the fake web app (`src/App.jsx`) drives `app/server.mjs`: sync DSN + URLs, start/stop load, send fixture, view status.
 
@@ -70,10 +70,9 @@ Same command devservices would run for the `local` runtime (`x-programs.devserve
 `snuba/devservices/config.yml`):
 
 ```bash
-cd ~/repos/snuba && export PATH=$PWD/.venv/bin:$PATH && snuba devserver   # api :1218 + rust consumers incl. eap_items
+~/repos/fake-instrumented-web-app/otlp/scripts/snuba-devserver.sh   # api :1218 + rust consumers incl. eap_items
+# = cd ~/repos/snuba && PATH=$PWD/.venv/bin:$PATH snuba devserver   (snuba must be on PATH; it re-execs by name)
 ```
-
-(`snuba` must be on `PATH`; the devserver re-execs itself by name.)
 
 ### 3. Relay from source
 
@@ -101,9 +100,14 @@ cp devservices/config/devservices-credentials.json \
 `tracemetrics-*` / `visibility-explore*` flags enabled.
 
 ```bash
-cd ~/repos/sentry && source .venv/bin/activate && export PATH=$PWD/.devenv/bin:$PATH
-sentry devserver --workers                          # UI :8000, backend :8001
+~/repos/fake-instrumented-web-app/otlp/scripts/sentry-devserver.sh   # UI :8000, backend :8001
+# = cd ~/repos/sentry && source .venv/bin/activate && PATH=$PWD/.devenv/bin:$PATH sentry devserver --workers
 ```
+
+The script wraps the devserver in a restart loop: in `--workers` mode honcho stops *every* process
+when any one exits, and `process-spans` exits on a Kafka `_MAX_POLL_EXCEEDED` whenever the machine
+is briefly busy (cargo build, Snuba restart). That took the whole stack down three times during
+the PoC.
 
 Create the project + key (once), and build the Relay project config synchronously
 (workaround: the taskworker gRPC client stayed in backoff against taskbroker, so the
@@ -278,20 +282,26 @@ Prometheus' `rate()`/`increase()` extrapolation does the same on its side. Perce
 the window is ≥5m (p50/p99 agree <1% even at 1m since they sit inside wide, well-populated buckets;
 p95 sits in the 6% tail and is noisy per minute on both sides).
 
-## Bugs found in the PoC branches (not fixed)
+## Bugs found in the PoC branches
 
-1. **snuba** — `snuba/web/rpc/common/aggregation.py:310`
-   (`PercentileExtrapolationContext.reliability`): any percentile over a group that contains only
-   exemplar rows (`row_kind:exemplar` filter, or `group by row_kind`) returns HTTP 500
-   `unsupported operand type(s) for -: 'NoneType' and 'float'`.
-   `histogram_aggregation.py` returns NULL for the percentile because exemplar rows are skipped, but
-   the companion `count` custom column still counts those rows, so `is_data_present` is true and the
-   reliability math runs with `self.value = None`. Repro: `sentry exec otlp/scripts/rpc_repro.py`, or Explore →
-   Metrics with query `row_kind:exemplar` and a pNN aggregate.
+See [`FIXES.md`](FIXES.md) for the full list, status and commits.
 
-Also seen (pre-existing, not PoC code): Relay panics in `relay-server/src/managed/managed.rs:949`
-(`New item has 2 items in category 'session', but original … only has 1 left`) on session
-envelopes from the fake app's main DSN; the envelope is dropped, Relay keeps running.
+1. **snuba** — percentile over a group with only exemplar rows returned HTTP 500
+   (`aggregation.py:310`, `NoneType - float`). Fixed in `6b2d2b14e` on the snuba PoC branch.
+
+Also seen (pre-existing, not PoC code): a Relay **debug-build** assertion in
+`relay-server/src/managed/managed.rs:949` (`New item has 2 items in category 'session' …`) on
+session envelopes from the fake app's main DSN; the envelope is dropped, Relay keeps running.
+A `--release` build does not have the check.
+
+Not bugs after all (earlier notes were wrong):
+
+- Sentry `max`/`min` for histograms "reporting bucket bounds": Relay clamps the lowest/highest
+  bucket to the point's `min`/`max` (`otel.rs` `clamp_lower`/`clamp_upper`), so the bounds *are*
+  the observed min/max whenever the SDK sends them. The `5000` came from the fixture, whose
+  payload has no min/max.
+- Point ID click adding a "Clear point filter" chip instead of a `point_id:` search term is the
+  PoC's intended UI (tooltip "Show all rows of this point").
 
 ## Workarounds in this setup (not product changes)
 
@@ -307,20 +317,13 @@ envelopes from the fake app's main DSN; the envelope is dropped, Relay keeps run
 
 ## Observed limitations
 
-- Clicking a Point ID in the samples table adds a "Clear point filter (<id>)" chip rather than a
-  `point_id:<id>` search term; the filter works but is not visible/editable in the search bar.
 - Prometheus 3.x's new `/query` UI has no "show exemplars" toggle (the old `g0.show_exemplars`
   param is ignored); exemplars are only visible via `/api/v1/query_exemplars` or Grafana.
-- The Snuba percentile 500 only triggers when the result group has exemplar rows and no bucket
-  rows (`row_kind:exemplar` on `events/`); `events-stats` returns 200 with zeros for the same
-  filter because its per-interval groups are built differently.
 - No live exemplars from the JS SDK (see above); exemplar paths were exercised only via the fixture.
 - Explicit-bucket percentiles are linear interpolation inside the bucket on both sides; a histogram
   whose tail falls in the (2500,5000] bucket gives p95 ≈ 2917 for both, not the true p95 of the
   underlying uniform tail (~4583 would be p99).
 - Summary and cumulative Sum/Histogram points are dropped by Relay by design; Prometheus keeps them.
-- Sentry `min`/`max` for histograms use the bucket bounds (`histogram_aggregation.py:139-142`), so
-  `max` reports the populated bucket's upper bound (5000) rather than the largest observed value.
-  Relay already writes `sentry._internal.histogram_min`/`histogram_max` from the OTLP point
-  (`otel.rs:733-737`) but Snuba does not read them yet.
+- Sentry `min`/`max` for histograms are bucket bounds; exact only when the SDK sends `min`/`max`
+  on the point (OTel JS does; the hand-built fixture does not).
 - Exponential histogram: 30m p95 Sentry 2940.1 vs Prometheus native histogram 2941.5 (0.05%).
