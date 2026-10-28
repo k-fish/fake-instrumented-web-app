@@ -1,0 +1,215 @@
+{
+  "uid": "otlp-poc-aligned",
+  "title": "OTLP PoC: Prometheus, aligned to Sentry 1m buckets",
+  "tags": [
+    "otlp-poc"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "templating": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "http.server.request.duration p50/p95/p99 (explicit, 1m, aligned)",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 9
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "lastNotNull",
+            "mean"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "refId": "p50",
+          "expr": "histogram_quantile(0.5, sum by (le) (rate(http_server_request_duration_milliseconds_bucket[1m] offset -1m)))",
+          "legendFormat": "p50",
+          "interval": "1m"
+        },
+        {
+          "refId": "p95",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_request_duration_milliseconds_bucket[1m] offset -1m)))",
+          "legendFormat": "p95",
+          "interval": "1m"
+        },
+        {
+          "refId": "p99",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(http_server_request_duration_milliseconds_bucket[1m] offset -1m)))",
+          "legendFormat": "p99",
+          "interval": "1m"
+        }
+      ],
+      "interval": "1m",
+      "maxDataPoints": 600
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "http.server.request.duration.exp p50/p95/p99 (native, 1m, aligned)",
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 24,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "lastNotNull",
+            "mean"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "refId": "p50",
+          "expr": "histogram_quantile(0.5, sum(rate(http_server_request_duration_exp_milliseconds[1m] offset -1m)))",
+          "legendFormat": "p50",
+          "interval": "1m"
+        },
+        {
+          "refId": "p95",
+          "expr": "histogram_quantile(0.95, sum(rate(http_server_request_duration_exp_milliseconds[1m] offset -1m)))",
+          "legendFormat": "p95",
+          "interval": "1m"
+        },
+        {
+          "refId": "p99",
+          "expr": "histogram_quantile(0.99, sum(rate(http_server_request_duration_exp_milliseconds[1m] offset -1m)))",
+          "legendFormat": "p99",
+          "interval": "1m"
+        }
+      ],
+      "interval": "1m",
+      "maxDataPoints": 600
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "poc.requests per minute (= Sentry sum, 1m)",
+      "gridPos": {
+        "x": 0,
+        "y": 17,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "mean"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(poc_requests_total[1m] offset -1m))",
+          "legendFormat": "all routes",
+          "interval": "1m"
+        },
+        {
+          "refId": "B",
+          "expr": "sum by (http_route) (increase(poc_requests_total[1m] offset -1m))",
+          "legendFormat": "{{http_route}}",
+          "interval": "1m"
+        }
+      ],
+      "interval": "1m",
+      "maxDataPoints": 600
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "poc.queue_depth avg over 1m (= Sentry avg)",
+      "gridPos": {
+        "x": 12,
+        "y": 17,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "mean"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "avg_over_time(poc_queue_depth[1m] offset -1m)",
+          "legendFormat": "{{queue_name}}",
+          "interval": "1m"
+        }
+      ],
+      "interval": "1m",
+      "maxDataPoints": 600
+    }
+  ],
+  "id": null
+}
