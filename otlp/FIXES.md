@@ -51,7 +51,9 @@ briefly busy (cargo build, Snuba restart, test runs). Happened three times durin
 looked like random outages (`OperationalError`, `Connection refused`).
 
 `scripts/sentry-devserver.sh` wraps the devserver in a restart loop. Not changed in sentry itself
-(unrelated to the PoC).
+(unrelated to the PoC). `scripts/snuba-devserver.sh` does the same for Snuba, whose devserver also
+stops everything when one consumer hits a transient Kafka error (seen: coordinator reload after
+the colima restart).
 
 ### 4. Bench — host disk filled up, taking Snuba, Redis and the colima VM down (recovered)
 
