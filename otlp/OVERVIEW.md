@@ -58,6 +58,43 @@ roughly 6–9× a gauge series per export interval. Exponential histograms (base
 capped at 64) are 25–60 rows per point and are the cost to watch. Resource attributes (service,
 k8s pod/node/namespace, cloud region, …) are copied onto every row as `resource.*`.
 
+## Billing
+
+Trace metrics are billed in two categories, `trace_metric` (count) and `trace_metric_byte`.
+For OTLP, Relay bills the **rows it produces**, not the point it received: when it expands an
+OTLP payload it undoes the inbound item's count and size and replaces them with one unit per row
+and the row's calculated size (`metric name + 8 B value + Σ attribute key + value bytes`; this is
+also stored on the row as `sentry.payload_size_bytes`). Resource and scope attributes are
+copied onto every row, so they are billed once per row.
+
+The example point above, sent as 1 871 B of JSON (≈ 900 B as protobuf):
+
+| row | billed bytes | of which resource + scope attrs |
+| --- | --- | --- |
+| bucket (100, 250] × 900 | 1 072 | 497 |
+| bucket (250, 500] × 80 | 1 072 | 497 |
+| bucket (500, 750] × 20 | 1 072 | 497 |
+| exemplar 698.2 | 784 | 497 |
+| exemplar 131.7 | 783 | 497 |
+| **total** | **5 units, 4 783 B** | 2 485 B (52%) |
+
+So one data point in = 5 `trace_metric` units and ~4.8 KB of `trace_metric_byte`, against 1 unit
+and 1.9 KB if we billed what was sent — 5× the count and ~2.6× the bytes (≈ 5× vs protobuf).
+Without exemplars it is 3 units and 3.2 KB (1.7× the bytes). The row count scales with populated
+buckets: a histogram that fills 8 of the 16 default buckets is 8 units per point per series per
+export interval; the exponential histogram in the bench averaged 28.
+
+Exemplars cost extra. Each is a full row carrying the whole resource/scope/point attribute
+set plus trace and span ids — in the example they are 2 of 5 units and a third of the bytes. The
+OTel SDK default for explicit histograms is up to one exemplar per populated bucket, which would
+roughly double a histogram's bill when the service is traced. Counters and gauges are
+unaffected: one point is one row, billed at roughly the same size as the row Relay would produce
+from the Sentry SDK (~350–410 B in the bench).
+
+Half the bytes in the example are the same eleven k8s/service resource attributes repeated on
+every row. An allowlist (or not prefixing/copying resource attributes onto bucket rows) is the
+single biggest lever on cost; moving to one row per point (option 3) is the other.
+
 ## Risks
 
 - **Percentile accuracy** is only as good as the sender's buckets. We interpolate inside the
