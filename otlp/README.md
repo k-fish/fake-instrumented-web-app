@@ -236,6 +236,10 @@ Full query: `scripts/rows.sql`; run with
 
 ## Live comparison
 
+Screenshots in `screenshots/`: Sentry Explore (p50/p95/p99, all three metrics, samples table with
+Row Kind / Bucket / Bucket Count / Point ID columns, "Exemplars only" toggle, point-id filter chip,
+exemplar → trace view), Grafana dashboard, Prometheus p95, fake-app OTel tab.
+
 Load at 20 req/s from 17:11 UTC. `scripts/compare.py` (`SENTRY_TOKEN=… python3 scripts/compare.py 15 5`) pulls Sentry `events-stats`
 (`interval=Nm`) and Prometheus `query_range` (`step=Nm`, range vectors `[Nm]`) over the same window.
 Prometheus range vectors at `t` cover `(t−N, t]` while Sentry buckets at `t` cover `[t, t+N)`, so the
@@ -303,6 +307,13 @@ envelopes from the fake app's main DSN; the envelope is dropped, Relay keeps run
 
 ## Observed limitations
 
+- Clicking a Point ID in the samples table adds a "Clear point filter (<id>)" chip rather than a
+  `point_id:<id>` search term; the filter works but is not visible/editable in the search bar.
+- Prometheus 3.x's new `/query` UI has no "show exemplars" toggle (the old `g0.show_exemplars`
+  param is ignored); exemplars are only visible via `/api/v1/query_exemplars` or Grafana.
+- The Snuba percentile 500 only triggers when the result group has exemplar rows and no bucket
+  rows (`row_kind:exemplar` on `events/`); `events-stats` returns 200 with zeros for the same
+  filter because its per-interval groups are built differently.
 - No live exemplars from the JS SDK (see above); exemplar paths were exercised only via the fixture.
 - Explicit-bucket percentiles are linear interpolation inside the bucket on both sides; a histogram
   whose tail falls in the (2500,5000] bucket gives p95 ≈ 2917 for both, not the true p95 of the
