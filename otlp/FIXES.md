@@ -65,6 +65,16 @@ demand; the running `target/debug/relay` is untouched), `colima restart`,
 `redis-check-aof --fix` on the `redis_redis-data` volume, `docker compose up -d`, restart Snuba.
 If you build Relay on this machine, keep an eye on `du -sh ~/repos/relay/target`.
 
+### 5. Bench — UI spinning forever: single hung granian worker (worked around)
+
+After the colima restart the Sentry backend (`:8001`) stopped answering while webpack (`:8000`)
+still served HTML, so every Explore page spun forever. Cause: the devserver runs **one** granian
+web worker (`SENTRY_GRANIAN_WORKERS` default 1); it was blocked on a socket to a VM service that
+had been restarted underneath it, and every subsequent request queued behind it (no request log
+for 90 minutes). Fix: restart the devserver; `scripts/sentry-devserver.sh` now exports
+`SENTRY_GRANIAN_WORKERS=2` so a single stuck request can't take the UI down. If it happens again:
+`curl -m 5 127.0.0.1:8001/api/0/` → `000` while `:8000` answers = this.
+
 ## Investigated — not bugs
 
 - **Sentry `max` = 5000 for histograms.** Relay clamps the lowest/highest bucket to the point's

@@ -11,6 +11,8 @@ LOG=${SENTRY_DEV_LOG:-/tmp/otlp-poc/sentry-devserver.log}
 cd "$SENTRY_REPO" || exit 1
 source .venv/bin/activate
 export PATH="$PWD/.devenv/bin:$PATH"
+# Default is 1 granian worker; one request blocked on a dead socket then stalls the whole UI.
+export SENTRY_GRANIAN_WORKERS=${SENTRY_GRANIAN_WORKERS:-2}
 while true; do
   echo "$(date -u +%FT%TZ) starting sentry devserver --workers" >> "$LOG"
   sentry devserver --workers >> "$LOG" 2>&1
