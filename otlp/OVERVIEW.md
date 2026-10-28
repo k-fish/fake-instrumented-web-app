@@ -115,6 +115,12 @@ single biggest lever on cost; moving to one row per point (option 3) is the othe
 - **Exemplars** are the only "samples" a histogram has, and only exist if the SDK sends them
   (OTel JS doesn't by default). Without them the Samples tab is empty and explains why. Trace
   links work when the trace was also sent to Sentry.
-- **Exponential histograms** are converted to ordinary bucket rows (zero and negative buckets
-  included, scale reduced until ≤ 64 buckets), after which they behave like explicit ones.
+- **Exponential histograms** ship a `scale` and sparse counts, not bounds. Relay computes the
+  exact base-2 bounds (`2^(i·2^-scale)`) and stores them as the same bucket rows an explicit
+  histogram gets, so storage and queries don't know they were exponential. That is lossless,
+  except: if one point has more than 64 populated buckets Relay halves the scale until it fits
+  (SDK default is 160 → two halvings, ~±4% → ~±9% per bucket). The cap only bounds rows per
+  point and is a constant. What's lost by not keeping `scale` is exact merging across points
+  with different scales and the cue to interpolate in log space; both can be added back with a
+  `bucket_scale` attribute without changing the row layout.
 - Dropped: Summary metrics, anything cumulative, NaN/Inf values, empty points.
