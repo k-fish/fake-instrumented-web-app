@@ -5,13 +5,16 @@ import {
   MeterProvider,
   PeriodicExportingMetricReader,
 } from "@opentelemetry/sdk-metrics";
-import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-proto";
-import { AggregationTemporalityPreference } from "@opentelemetry/exporter-metrics-otlp-http";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
 import { NodeTracerProvider, BatchSpanProcessor } from "@opentelemetry/sdk-trace-node";
 import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
 
 import { resolvePrometheusTarget, resolveSentryTarget } from "./config.mjs";
+import {
+  AggregationTemporality,
+  ExemplarInjectingExporter,
+  createExemplarReservoir,
+} from "./exemplars.mjs";
 
 diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.WARN);
 
@@ -62,13 +65,15 @@ function emptyStats() {
 
 /**
  * One MeterProvider, two readers: Relay gets DELTA, Prometheus stays CUMULATIVE.
- * Also sets up an OTLP trace exporter to Relay so the spans around histogram
- * recordings exist as real traces.
+ * Both use ExemplarInjectingExporter (see exemplars.mjs) because the JS SDK
+ * does not emit exemplars itself. Also sets up an OTLP trace exporter to Relay
+ * so the spans referenced by exemplars exist as real traces.
  */
 export function createPipeline(config) {
   const sentry = resolveSentryTarget(config);
   const prometheus = resolvePrometheusTarget(config);
   const stats = { sentry: emptyStats(), prometheus: emptyStats(), traces: emptyStats() };
+  const exemplars = createExemplarReservoir(["sentry", "prometheus"]);
 
   const resource = resourceFromAttributes({
     [ATTR_SERVICE_NAME]: config.serviceName,
@@ -81,10 +86,12 @@ export function createPipeline(config) {
     readers.push(
       new PeriodicExportingMetricReader({
         exporter: instrumentExporter(
-          new OTLPMetricExporter({
+          new ExemplarInjectingExporter({
+            name: "sentry",
             url: sentry.metricsUrl,
             headers: sentry.headers,
-            temporalityPreference: AggregationTemporalityPreference.DELTA,
+            temporality: AggregationTemporality.DELTA,
+            reservoir: exemplars,
           }),
           "sentry",
           stats
@@ -96,9 +103,11 @@ export function createPipeline(config) {
   readers.push(
     new PeriodicExportingMetricReader({
       exporter: instrumentExporter(
-        new OTLPMetricExporter({
+        new ExemplarInjectingExporter({
+          name: "prometheus",
           url: prometheus.metricsUrl,
-          temporalityPreference: AggregationTemporalityPreference.CUMULATIVE,
+          temporality: AggregationTemporality.CUMULATIVE,
+          reservoir: exemplars,
         }),
         "prometheus",
         stats
@@ -148,6 +157,7 @@ export function createPipeline(config) {
 
   return {
     stats,
+    exemplars,
     sentry,
     prometheus,
     meter: meterProvider.getMeter("otlp-poc"),

@@ -34,6 +34,7 @@ function status() {
     prometheus: resolvePrometheusTarget(config),
     load: { running: load?.running || false, ...load?.counts },
     exports: pipeline?.stats || null,
+    exemplars: pipeline?.exemplars.totals || null,
     lastFixture,
     fixture: FIXTURE,
   };

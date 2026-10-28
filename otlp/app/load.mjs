@@ -38,11 +38,11 @@ export function sampleDuration() {
 
 /**
  * Drives the instruments at a fixed request rate. Every histogram record runs
- * inside an active span so exemplars could attach to real traces if the SDK
- * supported them.
+ * inside an active span and is offered to the exemplar reservoir so the
+ * exported points carry exemplars pointing at real traces.
  */
 export function createLoadGenerator(pipeline, { requestsPerSecond = 20 } = {}) {
-  const { meter, tracer } = pipeline;
+  const { meter, tracer, exemplars } = pipeline;
 
   const requests = meter.createCounter(METRICS.requests, {
     description: "Requests handled by the fake server",
@@ -80,7 +80,10 @@ export function createLoadGenerator(pipeline, { requestsPerSecond = 20 } = {}) {
       requests.add(1, attributes);
       duration.record(ms, attributes);
       durationExp.record(ms, attributes);
-      span.setAttribute("cache", miss ? "miss" : "hit");
+      const cache = miss ? "miss" : "hit";
+      exemplars.offer(METRICS.duration, attributes, ms, span, { cache });
+      exemplars.offer(METRICS.durationExp, attributes, ms, span, { cache });
+      span.setAttribute("cache", cache);
       span.setStatus({ code: SpanStatusCode.OK });
       // End the span at a time that matches the recorded duration.
       span.end(Date.now() + ms);
