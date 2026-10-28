@@ -53,6 +53,16 @@ looked like random outages (`OperationalError`, `Connection refused`).
 `scripts/sentry-devserver.sh` wraps the devserver in a restart loop. Not changed in sentry itself
 (unrelated to the PoC).
 
+### 4. Bench — host disk filled up, taking Snuba, Redis and the colima VM down (recovered)
+
+Relay's `target/` reached 84 GB: `cargo test --all-features` plus a 40 GB `target/rust-analyzer`
+IDE check-cache and 7 GB `debug/incremental`. With the host at 99% the colima VM's disk went into
+I/O-error state (`overlay2/...: input/output error`), Snuba died with `ENOSPC`, and Redis's AOF
+was torn. Recovery: `rm -rf target/rust-analyzer target/debug/incremental` (safe, regenerated on
+demand; the running `target/debug/relay` is untouched), `colima restart`,
+`redis-check-aof --fix` on the `redis_redis-data` volume, `docker compose up -d`, restart Snuba.
+If you build Relay on this machine, keep an eye on `du -sh ~/repos/relay/target`.
+
 ## Investigated — not bugs
 
 - **Sentry `max` = 5000 for histograms.** Relay clamps the lowest/highest bucket to the point's
