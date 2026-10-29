@@ -112,8 +112,10 @@ single biggest lever on cost; moving to one row per point (option 3) is the othe
   DELTA` or a Collector `cumulativetodelta` step the points are dropped.
 - **Heatmaps** work only in "k-points" mode: Snuba expands each bucket row into k evenly spaced
   points (`arrayJoin`) so a bucket's count is spread over the y-cells it covers. Same trick makes
-  t-digest percentiles and value filters work on bucket rows, at k× query cost and a resolution of
-  `bucket_width / k`. Off by default (`SNUBA_OTLP_HISTOGRAM_POINTS_PER_BUCKET`).
+  t-digest percentiles and value filters work on bucket rows at a resolution of `bucket_width / k`.
+  Measured at k = 10 on a 32-bucket layout: aggregate table ~2× faster than the rank path,
+  timeseries equal, heatmap 3–4× the cost of a (wrong) midpoint heatmap. Off by default
+  (`SNUBA_OTLP_HISTOGRAM_POINTS_PER_BUCKET`).
 - **Exemplars** are the only "samples" a histogram has, and only exist if the SDK sends them
   (OTel JS doesn't by default). Without them the Samples tab is empty and explains why. Trace
   links work when the trace was also sent to Sentry.

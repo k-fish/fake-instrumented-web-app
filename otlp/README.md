@@ -15,7 +15,7 @@ Everything in this folder is PoC tooling. No PRs are opened from it.
 | `grafana/` | Provisioned Prometheus datasource (exemplar trace links → local Sentry trace view) and the `otlp-poc` dashboard |
 | `relay/config.yml` | Config for running Relay from source on the host, same port/credentials as the devservices container |
 | `screenshots/` | Captures from the live comparison |
-| `scripts/` | `sentry-devserver.sh`, `snuba-devserver.sh`, `mkproject.py`/`mktoken.py` (run via `sentry exec`), `build_config.py`, `compare.py`, `sq.sh`, `rows.sql`, `rpc_repro.py`, `smoke.envelope` |
+| `scripts/` | `sentry-devserver.sh`, `snuba-devserver.sh`, `mkproject.py`/`mktoken.py` (run via `sentry exec`), `build_config.py`, `compare.py`, `sq.sh`, `qbench.sh`, `rows.sql`, `rpc_repro.py`, `smoke.envelope` |
 
 The "OTel Metrics" tab in the fake web app (`src/App.jsx`) drives `app/server.mjs`: sync DSN + URLs, start/stop load, send fixture, view status.
 
@@ -180,11 +180,20 @@ Instruments (`app/load.mjs`):
 | --- | --- | --- | --- |
 | `poc.requests` | Counter | `poc.requests` / counter | `poc_requests_total` |
 | `poc.queue_depth` | ObservableGauge | `poc.queue_depth` / gauge | `poc_queue_depth` |
-| `http.server.request.duration` (ms, default explicit bounds) | Histogram | `http.server.request.duration` / histogram | `http_server_request_duration_milliseconds_{bucket,count,sum}` |
+| `http.server.request.duration` (ms, explicit bounds) | Histogram | `http.server.request.duration` / histogram | `http_server_request_duration_milliseconds_{bucket,count,sum}` |
 | `http.server.request.duration.exp` (View → exponential histogram) | Histogram | `http.server.request.duration.exp` / histogram | `http_server_request_duration_exp_milliseconds` (native histogram) |
 
-Durations are bimodal: 94% uniform in (0, 5], 6% uniform in (2500, 5000] ("cache miss").
-Each record happens inside a span exported to Relay via OTLP traces.
+Explicit bounds come from `config.explicitBuckets`: `16` = the OTel SDK default layout, `32`
+(default) = a denser log-spaced 1-2-3-5-7.5 layout up to 30 s (`BOUNDS_32` in `otel.mjs`). Relay
+has no cap on explicit buckets; exponential histograms are downscaled to ≤ 64 populated buckets
+per side (`MAX_EXPONENTIAL_BUCKETS` in `relay-server/.../integrations/otel.rs`).
+
+Durations are log-normal per route (medians 60 / 300 / 1200 ms for `/api/users`, `/api/search`,
+`/api/checkout`) plus a 3% "cache miss" tail uniform in (2500, 7500], so 27 of the 32 buckets are
+populated. The earlier bimodal shape (94% in (0, 5], 6% in (2500, 5000]) is kept in the fixture.
+`config.requestsPerSecond` and `exportIntervalMillis` control row volume (200 rps at a 1 s export
+≈ 180 rows/s across both histograms). Each record happens inside a span exported to Relay via OTLP
+traces.
 
 **Exemplars:** the OTel JS SDK (sdk-metrics 2.12) does not emit exemplars — `ExemplarFilter`/
 `ExemplarReservoir` exist in source but no reservoir is wired into the aggregators, and
@@ -282,7 +291,32 @@ Measured at k = 10:
 - `arrayJoin` multiplies every row in the SELECT, not just the aggregate; the hidden count column
   and the exemplar exclusion are rewritten too (`aggregation.py::get_count_column`). Identical
   `arrayJoin` expressions are CSE'd by ClickHouse so one query pays k× once, not per aggregate.
-- Query cost is k× the bucket rows; not measurable on this dataset.
+
+### Query cost: k-points vs merged-bucket rank
+
+`scripts/qbench.sh <label> 10m 5` runs the three Explore shapes against the 32-bucket histogram
+(aggregate table with count/sum/avg/p50/p95/p99/min/max, p95 timeseries at 1 m, heatmap at 1 m ×
+20 y-cells — the heatmap is two ClickHouse queries per request) and reads ClickHouse
+`system.query_log`. 10 m window ≈ 95 k observations, ~100 k–120 k EAP rows scanned per query
+(bucket + exemplar rows of both histograms; the window drifts between runs because load keeps
+coming in). Single local ClickHouse, warm cache, numbers are avg / max of 5 requests:
+
+| mode | table ms | table mem | timeseries ms | timeseries mem | heatmap ms (per query) | heatmap mem |
+| --- | --- | --- | --- | --- | --- | --- |
+| k = 0 (rank + interpolate) | 494–594 / 1077 | 42 MiB | 221–275 / 388 | 17 MiB | 124–155 / 291 | 15 MiB |
+| k = 10 | 206–298 / 387 | 17–19 MiB | 141–150 / 197 | 17–20 MiB | 442–756 / 3065 | 30–32 MiB (max 62) |
+| k = 32 | 418–486 / 810 | 23–27 MiB | 242–298 / 362 | 29–32 MiB | 1097–1221 / 2933 | 49–55 MiB (max 106) |
+
+- The aggregate table is *faster* at k = 10 than in rank mode: `sumMap` keyed by `(lower, upper)`
+  plus `arrayCumSum` per percentile is heavier than one weighted t-digest over 10× rows, and
+  uses 2× the memory. At k = 32 the two are even.
+- The timeseries (one percentile) is roughly a wash at k = 10 and ~10–20% slower at k = 32.
+- The heatmap is where k shows: 3–4× slower at k = 10 and ~8× at k = 32, because 20 y-cells ×
+  `count_if` each evaluate the expanded value, and memory scales with k. In rank mode the heatmap
+  is cheap but wrong (a bucket's whole count lands in the cell holding its midpoint).
+- Accuracy on this data (10 m, 32-bucket layout): p50 / p95 / p99 = 188.3 / 2927 / 6175 at k = 0,
+  187.5 / 2943 / 6126 at k = 10, 187.9 / 2943 / 6187 at k = 32 — all within 1%, which is well
+  inside what the bucket layout itself can resolve.
 
 Load at 20 req/s from 17:11 UTC. `scripts/compare.py` (`SENTRY_TOKEN=… python3 scripts/compare.py 15 5`) pulls Sentry `events-stats`
 (`interval=Nm`) and Prometheus `query_range` (`step=Nm`, range vectors `[Nm]`) over the same window.

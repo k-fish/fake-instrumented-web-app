@@ -213,6 +213,7 @@ Measured on the bench (`http.server.request.duration`, one series, 10 s export i
 | | per OTLP point | rows | Relay-serialized bytes (Kafka) | notes |
 | --- | --- | --- | --- | --- |
 | explicit histogram, bimodal load | 1 | 1.97 bucket + 4 exemplar | ~725 / bucket row, ~436 / exemplar | only 2 of 16 buckets are populated |
+| explicit histogram, 32-bucket layout, log-normal load | 1 | up to 27 bucket + 4 exemplar | same per row | one row per populated bucket; the layout, not the data, sets the row count |
 | exponential histogram, same load | 1 | 28.3 bucket (max 42) + 4 exemplar | ~728 / bucket row | base-2 at scale ≥ 3 puts a bucket every few % |
 | counter / gauge | 1 | 1 point | ~350–410 | |
 | example point above | 1 | 3 bucket + 2 exemplar | ≈ 3 050 B total | vs 1 871 B of OTLP JSON in |
@@ -269,7 +270,11 @@ per point and is the thing to watch.
   120 per 500 ms cell; percentiles on the fixture alone match interpolation mode exactly, and on
   a large mixed window snap to the `width/k` lattice (p50 2.75 vs 2.66, p99 4625 vs 4583 at k = 10).
   Cost is k× the bucket rows per query (ClickHouse CSEs identical `arrayJoin`s, so once per
-  query, not per aggregate). Default is 0 = exact rank + interpolation, no heatmap.
+  query, not per aggregate). Measured on a 32-bucket layout over ~100 k rows (README "Query
+  cost"): the aggregate table is ~2× *faster* at k = 10 than rank mode (one weighted t-digest
+  beats `sumMap` + `arrayCumSum` per percentile) and even at k = 32; the p95 timeseries is a
+  wash; the heatmap is 3–4× slower at k = 10 and ~8× at k = 32 with memory scaling with k.
+  Default is 0 = exact rank + interpolation, no heatmap.
 - Exemplars only exist if the SDK sends them. OTel JS doesn't; Java/Go/Python do with the
   `trace_based` filter (only inside sampled spans). Without them the histogram Samples tab is
   empty and says so.
