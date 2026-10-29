@@ -3,8 +3,11 @@
 # PATH because the devserver re-execs its consumers by name. Like the Sentry
 # devserver, it stops every process when one consumer dies (e.g. a transient
 # Kafka coordinator reload), so it is restarted automatically.
+# SNUBA_OTLP_HISTOGRAM_POINTS_PER_BUCKET=k turns on the arrayJoin k-points
+# path (heatmaps, t-digest percentiles); 0 keeps exact rank + interpolation.
 set -u
 SNUBA_REPO=${SNUBA_REPO:-$HOME/repos/snuba}
+export SNUBA_OTLP_HISTOGRAM_POINTS_PER_BUCKET=${SNUBA_OTLP_HISTOGRAM_POINTS_PER_BUCKET:-10}
 LOG=${SNUBA_DEV_LOG:-/tmp/otlp-poc/snuba.log}
 cd "$SNUBA_REPO" || exit 1
 export PATH="$PWD/.venv/bin:$PATH"

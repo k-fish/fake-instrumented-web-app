@@ -82,8 +82,8 @@ flowchart LR
   R -->|"snuba-items topic<br/>~725 B / bucket row, ~436 B / exemplar row"| Kafka
   Kafka --> Snuba["Snuba items consumer<br/>attributes hashed into 40 string + 40 float maps"]
   Snuba --> CH[("ClickHouse eap_items_1_local<br/>item_type = 8")]
-  CH --> Q["Snuba RPC (histogram_aggregation.py)<br/>count = Σ bucket_count · sum = Σ sum_share<br/>min/max from bounds · pNN = rank in merged buckets + interpolate<br/>row_kind = exemplar excluded"]
-  Q --> UI["Sentry Explore › Metrics<br/>type = histogram<br/>Samples tab = exemplar rows → trace view"]
+  CH --> Q["Snuba RPC (histogram_aggregation.py)<br/>count = Σ bucket_count · sum = Σ sum_share<br/>min/max from bounds · pNN = rank in merged buckets + interpolate<br/>(or k-points: arrayJoin each bucket into k weighted points)<br/>row_kind = exemplar excluded"]
+  Q --> UI["Sentry Explore › Metrics<br/>type = histogram<br/>Samples tab = exemplar rows → trace view<br/>Heatmap (k-points mode only)"]
 ```
 
 ### The example point
@@ -245,7 +245,8 @@ per point and is the thing to watch.
 - Exponential bucket cap of 64 halves the resolution at every downscale (~±9% at 64 vs ±4% at the
   SDK's 160). It's a constant in Relay; raising it multiplies rows.
 - Confidence intervals / reliability for histogram percentiles still use the t-digest-over-
-  `value` expression and are meaningless (they no longer crash, see FIXES.md).
+  `value` expression and are meaningless in interpolation mode (they no longer crash, see
+  FIXES.md). k-points mode runs them on the expanded points, which is at least well-defined.
 - Downsampled tiers sample by `item_id`, so the buckets of one point are kept or dropped
   independently. Percentiles over a downsampled tier would mix partial points. Not addressed;
   hash `point_id` or always read histograms from the full tier.
@@ -258,9 +259,17 @@ per point and is the thing to watch.
 - Delta only. Default OTel SDK and Collector traffic is cumulative and is dropped silently (debug
   log, no outcome). Also no `start_time` based rate yet, so a long export interval shows as one
   spike.
-- No heatmaps. The heatmap UI needs a value per observation (or a fixed grid); a histogram
-  point is per-series buckets with per-point bounds. Could be built from bucket rows later, but
-  the `histogram` type is excluded today.
+- Heatmaps need k-points mode. The heatmap endpoint is `count_if(value >= lo AND value < hi)`
+  per time interval, which on bucket rows would drop a whole bucket into the cell holding its
+  midpoint. With `SNUBA_OTLP_HISTOGRAM_POINTS_PER_BUCKET = k` Snuba expands each bucket row into
+  k evenly spaced points via `arrayJoin(range(k))` (value `lower + width·(i+0.5)/k`, weight
+  `bucket_count/k`; plain/exemplar rows keep i = 0) and rewrites every `sentry.value` filter and
+  aggregate onto the expanded value: count/sum/avg as weighted sums, percentiles as
+  `quantileTDigestWeighted(q)(value, round(weight·1000))`. The fixture's (2500,5000] × 600 lands as
+  120 per 500 ms cell; percentiles on the fixture alone match interpolation mode exactly, and on
+  a large mixed window snap to the `width/k` lattice (p50 2.75 vs 2.66, p99 4625 vs 4583 at k = 10).
+  Cost is k× the bucket rows per query (ClickHouse CSEs identical `arrayJoin`s, so once per
+  query, not per aggregate). Default is 0 = exact rank + interpolation, no heatmap.
 - Exemplars only exist if the SDK sends them. OTel JS doesn't; Java/Go/Python do with the
   `trace_based` filter (only inside sampled spans). Without them the histogram Samples tab is
   empty and says so.

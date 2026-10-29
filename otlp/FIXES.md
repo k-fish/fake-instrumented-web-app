@@ -101,7 +101,8 @@ for 90 minutes). Fix: restart the devserver; `scripts/sentry-devserver.sh` now e
 ## Known limitations (unchanged, by design of the PoC)
 
 - Confidence-interval columns for histogram percentiles still use the pre-PoC t-digest expression;
-  reliability on histogram percentiles is not meaningful (but no longer crashes).
+  reliability on histogram percentiles is not meaningful (but no longer crashes). In k-points mode
+  (`SNUBA_OTLP_HISTOGRAM_POINTS_PER_BUCKET > 0`, see README) they run over the expanded points.
 - Snuba applies the bucket-aware aggregation to every `sentry.value` aggregation (no proto flag).
 - The OTel JS SDK (sdk-metrics 2.12) emits no exemplars; the bench injects them itself
   (`app/exemplars.mjs`, see README). A real SDK would need reservoir support.

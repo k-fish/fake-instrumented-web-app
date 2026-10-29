@@ -74,6 +74,9 @@ Same command devservices would run for the `local` runtime (`x-programs.devserve
 # = cd ~/repos/snuba && PATH=$PWD/.venv/bin:$PATH snuba devserver   (snuba must be on PATH; it re-execs by name)
 ```
 
+The script exports `SNUBA_OTLP_HISTOGRAM_POINTS_PER_BUCKET=10` (k-points mode, needed for heatmaps —
+see "k-points mode" below). Set it to `0` for the exact rank + interpolation path.
+
 ### 3. Relay from source
 
 Per [relay/README.md "Usage with Sentry"](https://github.com/getsentry/relay#usage-with-sentry):
@@ -247,9 +250,39 @@ Full query: `scripts/rows.sql`; run with
 
 Screenshots in `screenshots/`: Sentry Explore (p50/p95/p99, all three metrics, samples tab showing
 exemplars with trace links — `sentry-samples-exemplars.png` — and its empty state when a histogram has
-none — `sentry-samples-no-exemplars.png`), Grafana dashboard, Prometheus p95, fake-app OTel tab.
+none — `sentry-samples-no-exemplars.png`), the histogram heatmap (`sentry-histogram-heatmap.png`,
+k-points mode), Grafana dashboard, Prometheus p95, fake-app OTel tab.
 Older screenshots still show the first UI iteration (Row Kind / Point ID columns, "Exemplars only"
 toggle); see FIXES.md "Samples tab = exemplars" for why that was dropped.
+
+## k-points mode (heatmaps)
+
+`SNUBA_OTLP_HISTOGRAM_POINTS_PER_BUCKET=k` (default 0) switches Snuba from "exact rank in merged
+buckets + interpolate" to expanding every bucket row into `k` evenly spaced points with
+`arrayJoin(range(k))` before aggregating: point `i` has value `lower + (upper-lower)·(i+0.5)/k` and
+weight `bucket_count/k`; plain and exemplar rows keep only `i = 0`. Everything then runs on the
+expanded value: `count`/`sum`/`avg` as weighted sums, percentiles as
+`quantileTDigestWeighted(q)(value, round(weight·1000))`, and any filter on `sentry.value` — which is
+what the heatmap endpoint's `count_if(value >= lo AND value < hi)` cells are — is rewritten onto
+the expanded value. Sentry's `doesMetricSupportHeatMapVisualization` allows `histogram`, so the
+Heatmap chart type shows up and each bucket's count is spread evenly over the y-cells it covers.
+
+Measured at k = 10:
+
+- Fixture alone (`sq.sh … 10m "http.route:/fixture"`): count 10 000, sum 1 569 400, p50/p95/p99 =
+  2.6596 / 2916.67 / 4583.33 — identical to interpolation mode, because a uniform lattice with
+  t-digest's linear interpolation between neighbouring centroids *is* uniform interpolation.
+  `count` stays an integer (weights are rounded back after summing).
+- Heatmap on the fixture (`events-heatmap`, `yBuckets=10`): 9400 in the 0–500 cell and 120 in each
+  of the five 500 ms cells from 2500 to 5000 (600 spread evenly). Interpolation mode would put all
+  600 in the 3500–4000 cell because `sentry.value` is the bucket midpoint.
+- Live load, 30 m, ~28 k observations across many points: p50/p95/p99 = 2.75 / 2978.8 / 4625 vs
+  2.66 / 2917 / 4583. Once the t-digest compresses centroids the answers snap to the point
+  lattice (`bucket_width/k`: 0.5 ms in (0,5], 250 ms in (2500,5000]). Raise k to shrink that.
+- `arrayJoin` multiplies every row in the SELECT, not just the aggregate; the hidden count column
+  and the exemplar exclusion are rewritten too (`aggregation.py::get_count_column`). Identical
+  `arrayJoin` expressions are CSE'd by ClickHouse so one query pays k× once, not per aggregate.
+- Query cost is k× the bucket rows; not measurable on this dataset.
 
 Load at 20 req/s from 17:11 UTC. `scripts/compare.py` (`SENTRY_TOKEN=… python3 scripts/compare.py 15 5`) pulls Sentry `events-stats`
 (`interval=Nm`) and Prometheus `query_range` (`step=Nm`, range vectors `[Nm]`) over the same window.

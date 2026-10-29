@@ -19,7 +19,7 @@ Grafana fed the same data: counts and percentiles match.
 Three options were on the table:
 
 1. **`metric.type = histogram`** — a new type, bucket data in internal attributes. Chosen: the UI
-   and backend can tell histograms apart (samples = exemplars, no heatmap) and OTLP histograms
+   and backend can tell histograms apart (samples = exemplars, bucket-aware math) and OTLP histograms
    never get mixed with SDK distributions by accident.
 2. **Reuse `distribution`, mark rows with `otlp.*` attributes** — least work, but a
    "distribution" whose rows are buckets rather than samples is something the UI can't detect,
@@ -110,8 +110,10 @@ single biggest lever on cost; moving to one row per point (option 3) is the othe
 
 - **Delta temporality only.** OTel SDKs default to cumulative; without `temporalityPreference:
   DELTA` or a Collector `cumulativetodelta` step the points are dropped.
-- **No heatmaps** for histograms — the heatmap needs per-observation values or a fixed grid,
-  and bucket bounds vary per point.
+- **Heatmaps** work only in "k-points" mode: Snuba expands each bucket row into k evenly spaced
+  points (`arrayJoin`) so a bucket's count is spread over the y-cells it covers. Same trick makes
+  t-digest percentiles and value filters work on bucket rows, at k× query cost and a resolution of
+  `bucket_width / k`. Off by default (`SNUBA_OTLP_HISTOGRAM_POINTS_PER_BUCKET`).
 - **Exemplars** are the only "samples" a histogram has, and only exist if the SDK sends them
   (OTel JS doesn't by default). Without them the Samples tab is empty and explains why. Trace
   links work when the trace was also sent to Sentry.
