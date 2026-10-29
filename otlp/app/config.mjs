@@ -11,6 +11,9 @@ export const DEFAULTS = {
   relayUrl: process.env.RELAY_URL || "",
   prometheusUrl: process.env.PROMETHEUS_URL || "http://localhost:9090",
   exportIntervalMillis: Number(process.env.EXPORT_INTERVAL_MS || 10000),
+  // 16 = OTel SDK default bounds, 32 = denser log-spaced layout (otel.mjs).
+  explicitBuckets: Number(process.env.EXPLICIT_BUCKETS || 32),
+  requestsPerSecond: Number(process.env.REQUESTS_PER_SECOND || 20),
   serviceName: "otlp-poc",
 };
 

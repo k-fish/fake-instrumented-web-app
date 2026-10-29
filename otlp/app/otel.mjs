@@ -18,7 +18,17 @@ import {
 
 diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.WARN);
 
+// OTel SDK default explicit bounds (16 buckets).
 export const DEFAULT_BOUNDS = [0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000];
+// Denser log-spaced layout (32 buckets), roughly 1-2-3-5-7.5 per decade.
+export const BOUNDS_32 = [
+  0, 1, 2, 3, 5, 7.5, 10, 15, 20, 25, 35, 50, 75, 100, 150, 200, 250, 350, 500, 750, 1000, 1500,
+  2000, 2500, 3500, 5000, 7500, 10000, 15000, 20000, 30000,
+];
+
+export function boundsFor(config) {
+  return Number(config.explicitBuckets) === 32 ? BOUNDS_32 : DEFAULT_BOUNDS;
+}
 
 export const METRICS = {
   requests: "poc.requests",
@@ -124,7 +134,7 @@ export function createPipeline(config) {
         instrumentName: METRICS.duration,
         aggregation: {
           type: AggregationType.EXPLICIT_BUCKET_HISTOGRAM,
-          options: { boundaries: DEFAULT_BOUNDS, recordMinMax: true },
+          options: { boundaries: boundsFor(config), recordMinMax: true },
         },
       },
       {

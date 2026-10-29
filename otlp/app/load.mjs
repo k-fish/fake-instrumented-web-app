@@ -2,16 +2,29 @@ import { SpanStatusCode } from "@opentelemetry/api";
 
 import { METRICS } from "./otel.mjs";
 
+// medianMs/sigma parameterise a log-normal per route so the OTel default
+// 16-bucket layout (0..10000) is populated end to end.
 const ROUTES = [
-  { route: "/api/users", method: "GET", weight: 5 },
-  { route: "/api/checkout", method: "POST", weight: 2 },
-  { route: "/api/search", method: "GET", weight: 3 },
+  { route: "/api/users", method: "GET", weight: 5, medianMs: 60, sigma: 1.1 },
+  { route: "/api/search", method: "GET", weight: 3, medianMs: 300, sigma: 0.9 },
+  { route: "/api/checkout", method: "POST", weight: 2, medianMs: 1200, sigma: 0.7 },
 ];
 
-export const CACHE_MISS_RATE = 0.06;
+export const CACHE_MISS_RATE = 0.03;
+const MAX_MS = 9000;
 
 function uniform(lo, hi) {
   return lo + Math.random() * (hi - lo);
+}
+
+function gaussian() {
+  const u = 1 - Math.random();
+  const v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+function logNormal(medianMs, sigma) {
+  return medianMs * Math.exp(sigma * gaussian());
 }
 
 function pickRoute() {
@@ -27,13 +40,15 @@ function pickRoute() {
 }
 
 /**
- * Bimodal request duration: ~94% cache hits in (0,5] ms, ~6% cache misses in
- * (2500,5000] ms. This is the shape where t-digest over one value per bucket
- * went badly wrong.
+ * Log-normal request duration per route (medians 60 / 300 / 1200 ms) plus a
+ * ~3% "cache miss" tail uniform in (2500, 7500] ms, clamped below MAX_MS so
+ * everything stays inside the default bucket layout. The old bimodal shape
+ * (94% in (0,5], 6% in (2500,5000]) lives on in the fixture.
  */
-export function sampleDuration() {
+export function sampleDuration(route) {
   const miss = Math.random() < CACHE_MISS_RATE;
-  return { miss, ms: miss ? uniform(2500, 5000) : uniform(0, 5) };
+  const ms = miss ? uniform(2500, 7500) : logNormal(route.medianMs, route.sigma);
+  return { miss, ms: Math.min(MAX_MS, Math.max(0.1, ms)) };
 }
 
 /**
@@ -68,8 +83,9 @@ export function createLoadGenerator(pipeline, { requestsPerSecond = 20 } = {}) {
   let timer = null;
 
   function handleRequest() {
-    const { route, method } = pickRoute();
-    const { miss, ms } = sampleDuration();
+    const picked = pickRoute();
+    const { route, method } = picked;
+    const { miss, ms } = sampleDuration(picked);
     const attributes = {
       "http.route": route,
       "http.request.method": method,
